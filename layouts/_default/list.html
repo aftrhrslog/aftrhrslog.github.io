@@ -30,8 +30,8 @@
     <li class="note-item">
       <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
       <div class="meta">
-        <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2 January 2006" }}</time>
         {{ partial "tags.html" . }}
+        <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
       </div>
       <p class="summary">{{ with .Description }}{{ . }}{{ else }}{{ .Summary | plainify | truncate 210 }}{{ end }}</p>
     </li>

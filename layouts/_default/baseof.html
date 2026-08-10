@@ -6,8 +6,10 @@
 <div class="sheet">
 {{ partial "hero.html" . }}
 <div class="desk-fade" aria-hidden="true"></div>
-<main id="content" class="wrap">
-  {{ block "main" . }}{{ end }}
+<main id="content" class="page">
+  <div class="wrap">
+    {{ block "main" . }}{{ end }}
+  </div>
 </main>
 {{ partial "footer.html" . }}
 </div>
