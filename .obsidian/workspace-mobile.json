@@ -42,7 +42,7 @@
             "searchQuery": ""
           },
           "icon": "lucide-folder-closed",
-          "title": "파일 탐색기"
+          "title": "Files"
         }
       },
       {
@@ -183,8 +183,9 @@
   },
   "active": "a8bda5fab73b213a",
   "lastOpenFiles": [
-    "content/now/2026-05-17.md",
+    "content/notes/moving-a-desk.md",
     "content/notes/moving-to-a-new-desk.md",
+    "content/now/2026-05-17.md",
     "build_assets.py",
     "README.md",
     "build_favicon.py",
@@ -209,7 +210,6 @@
     "content/notes/_index.md",
     "content/notes/river-walk.md",
     "content/notes/naming-things.md",
-    "content/notes/moving-a-desk.md",
     "content/notes/quiet-keyboards.md",
     "content/notes/speaker-notes.md",
     "content/notes/two-kinds-of-lists.md",
