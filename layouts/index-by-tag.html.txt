@@ -1,0 +1,34 @@
+The previous home page section — one note per tag — kept in case you want it
+back. Paste it over the "Recently" section in layouts/index.html. It needs no
+CSS beyond .section-head, which the new stylesheet already defines.
+
+<section aria-labelledby="digest-h">
+  <div class="section-head">
+    <h2 id="digest-h">Latest from each tag</h2>
+    <span class="rule" aria-hidden="true"></span>
+    <a href="{{ "notes/" | relURL }}">all notes &rarr;</a>
+  </div>
+  <ul class="note-list">
+    {{ $shown := slice }}
+    {{ range site.Params.tagOrder }}
+      {{ $slug := . | urlize }}
+      {{ with index site.Taxonomies.tags $slug }}
+        {{ $latest := "" }}
+        {{ range .Pages.ByDate.Reverse }}
+          {{ if and (not $latest) (not (in $shown .RelPermalink)) }}{{ $latest = . }}{{ end }}
+        {{ end }}
+        {{ if $latest }}
+        {{ $shown = $shown | append $latest.RelPermalink }}
+        <li class="note-item">
+          <h2><a href="{{ $latest.RelPermalink }}">{{ $latest.Title }}</a></h2>
+          <div class="meta">
+            {{ partial "tags.html" $latest }}
+            <time datetime="{{ $latest.Date.Format "2006-01-02" }}">{{ $latest.Date.Format "2006-01-02" }}</time>
+          </div>
+          <p class="summary">{{ $latest.Description }}</p>
+        </li>
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  </ul>
+</section>
