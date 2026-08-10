@@ -4,7 +4,10 @@
 <body>
 <div class="sheet">
 <nav class="plain-nav" aria-label="Main">
-  <a class="wordmark" href="{{ "/" | relURL }}">Yoon&#39;s Home</a>
+  <a class="wordmark" href="{{ "/" | relURL }}" aria-label="Home">
+    <span class="wm-main">{{ site.Params.wordmark }}</span>
+    <span class="wm-sub">{{ site.Params.tagline }}</span>
+  </a>
   <ul>
     {{ range site.Menus.main }}
     <li><a href="{{ .URL | relURL }}">{{ .Name }}</a></li>
