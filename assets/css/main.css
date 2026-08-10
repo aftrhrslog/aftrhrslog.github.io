@@ -1,5 +1,4 @@
 /* ==========================================================================
-   Yoon's Home
    Hero art 1672x941.  Every hero coordinate below is expressed as a
    percentage of that artwork, so the whole scene scales as one piece.
    ========================================================================== */
@@ -272,11 +271,11 @@ img { max-width: 100%; height: auto; }
 /* -- desk edge into the page ---------------------------------------------- */
 
 .desk-fade {
-  height: 180px;
+  height: 60px;
   margin-top: -1px;
   background: linear-gradient(to bottom,
-              #2C241F 0%, #6B5540 6%, #C9B896 14%, var(--cream) 27%,
-              #F0EFE6 56%, var(--mint) 100%);
+              #2C241F 0%, #7A6247 14%, #CDBC9C 32%, var(--cream) 55%,
+              #F0EFE6 78%, var(--mint) 100%);
 }
 
 /* ==========================================================================
@@ -306,7 +305,7 @@ img { max-width: 100%; height: auto; }
      width and hold both lines on one line each. */
   .wordmark { flex: 0 0 auto; }
   .wm-main, .wm-sub { white-space: nowrap; }
-  .desk-fade { height: 130px; }
+  .desk-fade { height: 45px; }
 }
 
 /* ==========================================================================
