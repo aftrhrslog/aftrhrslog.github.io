@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build hero assets for Yoon's Home.
+"""Build hero assets
 
 Outputs into site/static/img/:
   base.webp          hero background, 1672x941
