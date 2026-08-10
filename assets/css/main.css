@@ -833,3 +833,187 @@ mark {
 /* Now is not a sixth tag: same lightness as the five, but almost no chroma,
    so it reads as a different kind of label rather than another subject. */
 .tag-now { --tc: #506675; --tb: #E6ECF1; }
+
+
+/* ==========================================================================
+   Design pass — body (2026-08). Everything below overrides the rules above.
+   Three ideas: a beige-to-mint page under the desk, an 8px pixel grid with
+   hard 2px borders and blur-free shadows, and a boxed tag chip.
+   ========================================================================== */
+
+:root {
+  --measure:   60ch;              /* was 68ch: Newsreader ran to ~80 characters */
+  --sand:      #F5EDE0;
+  --sand-2:    #F0EFE4;
+  --ink-meta:  #465355;           /* was #5C686A — too pale at label sizes */
+  --chip-rule: #C1D5CB;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+body { font-size: 1.125rem; line-height: 1.62; }
+p, li, .summary, .lede { text-wrap: pretty; }
+
+/* -- the desk keeps going ------------------------------------------------- */
+
+.desk-fade {
+  background: linear-gradient(to bottom,
+              #2C241F 0%, #7A6247 15%, #CDBC9C 35%, #F2E7D4 68%, var(--sand) 100%);
+}
+main.page {
+  background: linear-gradient(to bottom,
+              var(--sand) 0%, var(--sand-2) 24%, var(--mint) 64%);
+  padding-top: 40px;
+}
+
+/* -- labels: mono, uppercase, one 8px square ------------------------------ */
+
+.now h2, .now-archive h2, .section-head h2 {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.now h2::before, .now-archive h2::before, .section-head h2::before {
+  content: ""; width: 8px; height: 8px; background: currentColor; flex: none;
+}
+.section-head h2 { color: var(--ink-meta); }
+
+.section-head { display: flex; align-items: center; gap: 16px; margin: 0 0 8px; }
+.section-head .rule {
+  flex: 1; height: 2px;
+  background: linear-gradient(90deg, var(--rule) 50%, transparent 0) 0 0/16px 2px repeat-x;
+}
+.section-head a {
+  font-family: var(--font-mono); font-size: .82rem;
+  text-decoration: none; white-space: nowrap; flex: none;
+}
+
+/* -- Now ------------------------------------------------------------------ */
+
+.now {
+  border: 2px solid var(--accent);
+  border-radius: 0;
+  background: #F1F7F3;
+  box-shadow: 8px 8px 0 rgba(31, 111, 168, .16);
+  padding: 24px;
+  margin: 0 0 48px;
+}
+.now-head { align-items: center; margin-bottom: 16px; }
+.now-head time { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-meta); }
+.now ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.now li { position: relative; margin: 0; padding-left: 24px; font-size: 1.06rem; line-height: 1.6; }
+.now li::before {
+  content: ""; position: absolute; left: 0; top: .66em;
+  width: 8px; height: 8px; background: var(--ink);
+}
+.now-more {
+  margin: 16px 0 0; padding-top: 16px;
+  border-top: 2px dashed var(--rule);
+  font-family: var(--font-mono); font-size: .82rem; font-weight: 400;
+}
+
+/* -- note rows -----------------------------------------------------------
+   The template prints meta above the summary; ordering here puts the title,
+   the sentence and then the meta line, without touching the markup.        */
+
+.note-list { display: flex; flex-direction: column; gap: 8px; }
+.note-item {
+  display: flex;
+  flex-direction: column;
+  border: 2px solid transparent;
+  padding: 16px;
+}
+.note-item:first-child { padding-top: 16px; }
+.note-item:hover {
+  border-color: var(--ink);
+  background: #F1F7F3;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.note-item h2      { order: 1; font-size: 1.22rem; margin: 0 0 4px; }
+.note-item .summary{ order: 2; margin: 0 0 10px; font-size: 1rem; }
+.note-item .meta   { order: 3; font-family: var(--font-mono); font-size: 12.5px;
+                     color: var(--ink-meta); gap: 12px; }
+
+/* -- tag chips ------------------------------------------------------------ */
+
+.tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1.5px solid var(--chip-rule);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-meta);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 400;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 4px 8px;
+}
+.tag::before { content: ""; width: 8px; height: 8px; background: var(--tc); flex: none; }
+.tag:hover { color: var(--ink); border-color: var(--ink); filter: none; }
+.tag-index .tag { font-size: 13px; padding: 6px 10px; }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1.5px solid var(--chip-rule);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-meta);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 400;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 5px 9px;
+  box-shadow: none;
+}
+.pill::before { content: ""; width: 8px; height: 8px; background: var(--tc, #8DA39B); flex: none; }
+.pill:hover { color: var(--ink); border-color: var(--ink); filter: none; }
+.pill.is-on { color: var(--ink); border-color: var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+
+/* -- rules: 8 on, 8 off --------------------------------------------------- */
+
+hr, .tag-filter {
+  border: 0;
+  background: linear-gradient(90deg, var(--rule) 50%, transparent 0) bottom left/16px 2px repeat-x;
+}
+hr { height: 2px; }
+.tag-filter { padding-bottom: 22px; margin-bottom: 30px; }
+
+/* -- square everything else ----------------------------------------------- */
+
+.toc, .note-nav a, pre, .search input { border-radius: 0; border-width: 2px; }
+code, mark { border-radius: 0; }
+.note-nav { border-top-width: 2px; }
+.note-nav a:hover { box-shadow: 4px 4px 0 var(--ink); border-color: var(--ink); }
+.note-nav .dir, .toc > summary { font-family: var(--font-mono); letter-spacing: .08em; }
+.meta, .pager, .more, figcaption, .search-status { font-family: var(--font-mono); }
+.more { font-size: .82rem; }
+.search-results li { border-bottom-width: 2px; }
+
+.site-footer {
+  border-top: 2px solid #C8DED4;
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  color: var(--ink-meta);
+}
+.foot-links { gap: 16px; }
+
+/* -- narrow --------------------------------------------------------------- */
+
+@media (max-width: 600px) {
+  body { font-size: 1.1rem; }
+  .wrap { padding: 0 22px; }
+  main.page { padding-top: 32px; }
+  .now { padding: 16px; box-shadow: 4px 4px 0 rgba(31, 111, 168, .16); }
+  .now li { font-size: 1.02rem; }
+  .note-item { padding: 12px 8px; }
+  .note-item h2 { font-size: 1.16rem; }
+  .section-head { gap: 12px; }
+}
