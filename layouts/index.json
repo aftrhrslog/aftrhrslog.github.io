@@ -1,0 +1,27 @@
+{{- $docs := slice -}}
+
+{{- range where site.RegularPages "Section" "notes" -}}
+  {{- $docs = $docs | append (dict
+      "t"    .Title
+      "u"    .RelPermalink
+      "d"    (.Date.Format "2 January 2006")
+      "s"    (.Date.Format "2006-01-02")
+      "tags" .Params.tags
+      "kind" "note"
+      "x"    (.Plain | htmlUnescape | chomp)) -}}
+{{- end -}}
+
+{{- with site.GetPage "/now" -}}
+  {{- range .Pages -}}
+    {{- $docs = $docs | append (dict
+        "t"    (.Date.Format "2 January 2006")
+        "u"    (printf "/now/#%s" (.Date.Format "2006-01-02"))
+        "d"    (.Date.Format "2 January 2006")
+        "s"    (.Date.Format "2006-01-02")
+        "tags" slice
+        "kind" "now"
+        "x"    (.Plain | htmlUnescape | chomp)) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $docs | jsonify -}}

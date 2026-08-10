@@ -1,0 +1,48 @@
+baseURL = 'https://aftrhrslog.github.io/'
+languageCode = 'en-us'
+title = "AftrHrs: A Journey of Self-Discovery"
+enableRobotsTXT = true
+disableKinds = ['rss']
+
+[pagination]
+  pagerSize = 5
+
+[outputs]
+  home = ['html', 'json']
+
+[taxonomies]
+  tag = 'tags'
+
+[params]
+  description = "Notes, purchases, research, leisure and whatever else."
+  wordmark = "AftrHrs"
+  tagline = "A Journey of Self-Discovery"
+  tagOrder = ["Thoughts", "Purchases", "Research", "Leisure", "Misc"]
+
+[[menu.main]]
+  name = 'Notes'
+  url = '/notes/'
+  weight = 1
+
+[[menu.main]]
+  name = 'About'
+  url = '/about/'
+  weight = 2
+
+[[menu.main]]
+  name = 'Search'
+  url = '/search/'
+  weight = 3
+
+[markup]
+  [markup.goldmark.renderer]
+    unsafe = true
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel = 3
+    ordered = false
+  [markup.highlight]
+    noClasses = true
+    style = 'friendly'
+    lineNos = false
+    tabWidth = 2

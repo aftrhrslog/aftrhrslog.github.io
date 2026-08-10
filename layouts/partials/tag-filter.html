@@ -1,0 +1,12 @@
+{{ $active := "" }}
+{{ if eq .Kind "term" }}{{ $active = .Title }}{{ end }}
+<nav class="tag-filter" aria-label="Filter by tag">
+  <a class="pill{{ if eq $active "" }} is-on{{ end }}" href="{{ "notes/" | relURL }}"
+     {{ if eq $active "" }}aria-current="true"{{ end }}>All</a>
+  {{ range site.Params.tagOrder }}
+    {{ $on := eq . $active }}
+    <a class="pill tag tag-{{ . | urlize }}{{ if $on }} is-on{{ end }}"
+       href="{{ (printf "/tags/%s/" (. | urlize)) | relURL }}"
+       {{ if $on }}aria-current="true"{{ end }}>{{ . }}</a>
+  {{ end }}
+</nav>

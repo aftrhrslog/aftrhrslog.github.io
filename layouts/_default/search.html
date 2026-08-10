@@ -1,0 +1,123 @@
+{{ define "main" }}
+<div class="page-head">
+  <h1>{{ .Title }}</h1>
+  {{ .Content }}
+</div>
+
+<form class="search" role="search" onsubmit="return false">
+  <label class="sr-only" for="q">Search</label>
+  <input type="search" id="q" name="q" autocomplete="off" autofocus
+         placeholder="Type a word or two…" spellcheck="false">
+</form>
+
+<p class="search-status" id="status" role="status" aria-live="polite"></p>
+<ul class="search-results" id="results"></ul>
+
+<noscript>
+  <p>Search needs JavaScript. You can browse everything under
+    <a href="{{ "notes/" | relURL }}">Notes</a> and
+    <a href="{{ "now/" | relURL }}">Now</a> instead.</p>
+</noscript>
+
+<script>
+(function () {
+  var INDEX_URL = "{{ "index.json" | relURL }}";
+  var input   = document.getElementById('q');
+  var results = document.getElementById('results');
+  var status  = document.getElementById('status');
+  var docs = null, loading = null;
+
+  function esc(s) {
+    return s.replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  /* Terms are matched as plain substrings — no fuzzy matching, so a typo
+     finds nothing rather than finding the wrong thing. */
+  function terms(q) {
+    return q.toLowerCase().split(/\s+/).filter(Boolean);
+  }
+
+  function mark(text, ts) {
+    var out = esc(text);
+    ts.forEach(function (t) {
+      var re = new RegExp('(' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+      out = out.replace(re, '<mark>$1</mark>');
+    });
+    return out;
+  }
+
+  /* A window of text around the first hit, trimmed to whole words. */
+  function snippet(text, ts) {
+    var low = text.toLowerCase(), at = -1;
+    for (var i = 0; i < ts.length && at < 0; i++) at = low.indexOf(ts[i]);
+    if (at < 0) return mark(text.slice(0, 180), ts) + (text.length > 180 ? '…' : '');
+
+    var from = Math.max(0, at - 80), to = Math.min(text.length, at + 120);
+    if (from > 0) from = text.indexOf(' ', from) + 1;
+    if (to < text.length) to = text.lastIndexOf(' ', to);
+    return (from > 0 ? '…' : '') + mark(text.slice(from, to), ts) +
+           (to < text.length ? '…' : '');
+  }
+
+  function render(q) {
+    var ts = terms(q);
+    results.innerHTML = '';
+    if (!ts.length) { status.textContent = ''; return; }
+
+    var hits = [];
+    docs.forEach(function (d) {
+      var hay = (d.t + ' ' + (d.tags || []).join(' ') + ' ' + d.x).toLowerCase();
+      if (!ts.every(function (t) { return hay.indexOf(t) >= 0; })) return;
+      var inTitle = ts.some(function (t) { return d.t.toLowerCase().indexOf(t) >= 0; });
+      hits.push({ d: d, rank: inTitle ? 0 : 1 });
+    });
+
+    hits.sort(function (a, b) {
+      return a.rank - b.rank || (a.d.s < b.d.s ? 1 : -1);
+    });
+
+    status.textContent = hits.length
+      ? hits.length + (hits.length === 1 ? ' result' : ' results')
+      : 'Nothing matches “' + q + '”.';
+
+    hits.forEach(function (h) {
+      var d = h.d, li = document.createElement('li');
+      var badge = d.kind === 'now'
+        ? '<span class="tag tag-now">Now</span>'
+        : (d.tags || []).map(function (t) {
+            return '<a class="tag tag-' + t.toLowerCase() + '" href="/tags/' +
+                   t.toLowerCase() + '/">' + esc(t) + '</a>';
+          }).join('');
+      /* A Now entry is titled by its own date, so repeating it in the meta
+         line would say the same thing twice. */
+      var when = d.kind === 'now' ? ''
+        : '<time datetime="' + d.s + '">' + d.d + '</time>';
+      li.innerHTML =
+        '<h2><a href="' + d.u + '">' + mark(d.t, ts) + '</a></h2>' +
+        '<div class="meta">' + when + badge + '</div>' +
+        '<p class="summary">' + snippet(d.x, ts) + '</p>';
+      results.appendChild(li);
+    });
+  }
+
+  function run() {
+    var q = input.value.trim();
+    history.replaceState(null, '', q ? '?q=' + encodeURIComponent(q) : location.pathname);
+    if (docs) { render(q); return; }
+    if (!q) return;
+
+    status.textContent = 'Loading…';
+    loading = loading || fetch(INDEX_URL).then(function (r) { return r.json(); });
+    loading.then(function (data) { docs = data; render(input.value.trim()); })
+           .catch(function () { status.textContent = 'Could not load the index.'; });
+  }
+
+  input.addEventListener('input', run);
+
+  var start = new URLSearchParams(location.search).get('q');
+  if (start) { input.value = start; run(); }
+})();
+</script>
+{{ end }}

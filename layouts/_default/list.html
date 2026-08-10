@@ -1,0 +1,52 @@
+{{ define "main" }}
+
+{{ if eq .Kind "taxonomy" }}
+  {{/* /tags/ — the index of all tags */}}
+  <div class="page-head">
+    <h1>Tags</h1>
+    <p>{{ len .Pages }} tags across the notes.</p>
+  </div>
+  <ul class="tag-index">
+    {{ range .Pages.ByTitle }}
+      <li><a class="tag tag-{{ .Title | urlize }}" href="{{ .RelPermalink }}">{{ .Title }}<span class="count">{{ len .Pages }}</span></a></li>
+    {{ end }}
+  </ul>
+
+{{ else }}
+  <div class="page-head">
+    <h1>{{ if eq .Kind "term" }}{{ .Title }}{{ else }}{{ .Title }}{{ end }}</h1>
+    {{ if .Content }}{{ .Content }}
+    {{ else if eq .Kind "term" }}<p>{{ len .Pages }} note{{ if ne (len .Pages) 1 }}s{{ end }} tagged {{ .Title }}.</p>
+    {{ end }}
+  </div>
+
+  {{ partial "tag-filter.html" . }}
+
+  {{ $pages := .Pages.ByDate.Reverse }}
+  {{ $paginator := .Paginate $pages }}
+
+  <ul class="note-list">
+    {{ range $paginator.Pages }}
+    <li class="note-item">
+      <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+      <div class="meta">
+        <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2 January 2006" }}</time>
+        {{ partial "tags.html" . }}
+      </div>
+      <p class="summary">{{ with .Description }}{{ . }}{{ else }}{{ .Summary | plainify | truncate 210 }}{{ end }}</p>
+    </li>
+    {{ else }}
+    <li class="note-item"><p class="summary">Nothing here yet.</p></li>
+    {{ end }}
+  </ul>
+
+  {{ if gt $paginator.TotalPages 1 }}
+  <nav class="pager" aria-label="Pagination">
+    {{ if $paginator.HasPrev }}<a href="{{ $paginator.Prev.URL }}">&larr; Newer</a>{{ else }}<span></span>{{ end }}
+    <span>Page {{ $paginator.PageNumber }} of {{ $paginator.TotalPages }}</span>
+    {{ if $paginator.HasNext }}<a href="{{ $paginator.Next.URL }}">Older &rarr;</a>{{ else }}<span></span>{{ end }}
+  </nav>
+  {{ end }}
+{{ end }}
+
+{{ end }}

@@ -1,0 +1,43 @@
+<header class="hero" id="hero">
+  <div class="stage">
+    <img class="art" src="{{ "img/base.webp" | relURL }}" width="1672" height="941"
+         alt="A desk by a wide window: a speaker on a stand, an open laptop, a small potted plant and a stack of books, with a river valley and mountains beyond."
+         fetchpriority="high" decoding="async">
+
+    {{ $far  := "img/clouds-far.webp"  | relURL }}
+    {{ $near := "img/clouds-near.webp" | relURL }}
+    {{ range slice "centre" "right" }}
+    <div class="pane pane-{{ . }}" aria-hidden="true">
+      <div class="track track-far">
+        <img src="{{ $far }}" width="1672" height="260" alt="" decoding="async">
+        <img src="{{ $far }}" width="1672" height="260" alt="" decoding="async">
+      </div>
+      <div class="track track-near">
+        <img src="{{ $near }}" width="1672" height="260" alt="" decoding="async">
+        <img src="{{ $near }}" width="1672" height="260" alt="" decoding="async">
+      </div>
+    </div>
+    {{ end }}
+
+    <div class="cat p2" id="cat" aria-hidden="true">
+      <img src="{{ "img/cat-strip.webp" | relURL }}" width="13680" height="437"
+           alt="" decoding="async" fetchpriority="low">
+    </div>
+  </div>
+
+  <nav class="hero-nav" aria-label="Main">
+    <a class="wordmark{{ if .IsHome }} is-current{{ end }}" href="{{ "/" | relURL }}"
+       aria-label="Home"{{ if .IsHome }} aria-current="page"{{ end }}>
+      <span class="wm-main">{{ site.Params.wordmark }}</span>
+      <span class="wm-sub">{{ site.Params.tagline }}</span>
+    </a>
+    <ul>
+      {{ $notes := or (eq .Section "notes") (in (slice "taxonomy" "term") .Kind) }}
+      {{ range site.Menus.main }}
+        {{ $on := false }}
+        {{ if eq .URL "/notes/" }}{{ $on = $notes }}{{ else }}{{ $on = eq $.RelPermalink (.URL | relURL) }}{{ end }}
+        <li><a href="{{ .URL | relURL }}"{{ if $on }} aria-current="page"{{ end }}>{{ .Name }}</a></li>
+      {{ end }}
+    </ul>
+  </nav>
+</header>

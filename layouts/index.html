@@ -1,0 +1,53 @@
+{{ define "main" }}
+
+<div class="page-head intro">
+  {{ .Content }}
+</div>
+
+{{ with site.GetPage "/now" }}
+  {{ with .Pages.ByDate.Reverse }}
+    {{ $latest := index . 0 }}
+    <section class="now" aria-labelledby="now-h">
+      <div class="now-head">
+        <h2 id="now-h">Now</h2>
+        <time datetime="{{ $latest.Date.Format "2006-01-02" }}">{{ $latest.Date.Format "2 January 2006" }}</time>
+      </div>
+      {{ $latest.Content }}
+      {{ if gt (len .) 1 }}
+      <p class="now-more">
+        <a href="{{ "now/" | relURL }}">See all {{ len . }} updates &rarr;</a>
+      </p>
+      {{ end }}
+    </section>
+  {{ end }}
+{{ end }}
+
+<section class="digest" aria-labelledby="digest-h">
+  <h2 id="digest-h">Latest from each tag</h2>
+  <ul>
+    {{/* A note carrying two tags would otherwise appear twice, so each row
+         falls through to the next unused note in that tag. */}}
+    {{ $shown := slice }}
+    {{ range site.Params.tagOrder }}
+      {{ $name := . }}
+      {{ $slug := . | urlize }}
+      {{ with index site.Taxonomies.tags $slug }}
+        {{ $latest := "" }}
+        {{ range .Pages.ByDate.Reverse }}
+          {{ if and (not $latest) (not (in $shown .RelPermalink)) }}{{ $latest = . }}{{ end }}
+        {{ end }}
+        {{ if $latest }}
+        {{ $shown = $shown | append $latest.RelPermalink }}
+        <li>
+          <a class="tag tag-{{ $slug }}" href="{{ (printf "/tags/%s/" $slug) | relURL }}">{{ $name }}</a>
+          <a class="digest-title" href="{{ $latest.RelPermalink }}">{{ $latest.Title }}</a>
+          <time datetime="{{ $latest.Date.Format "2006-01-02" }}">{{ $latest.Date.Format "2 Jan 2006" }}</time>
+        </li>
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  </ul>
+</section>
+
+<p class="more"><a href="{{ "notes/" | relURL }}">All notes &rarr;</a></p>
+{{ end }}

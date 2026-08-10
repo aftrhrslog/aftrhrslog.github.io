@@ -1,0 +1,28 @@
+<script>
+(function () {
+  var cat = document.getElementById('cat');
+  var hero = document.getElementById('hero');
+
+  /* The cat takes one of four spots at random on every page load.  On a phone
+     the sides of the artwork are trimmed, so p4 falls outside entirely and p3
+     loses the tip of its tail below about 480px — the body stays whole down to
+     344px, which is close enough. */
+  if (cat) {
+    var narrow = window.matchMedia('(max-width: 767px)');
+    var place = function () {
+      var spots = narrow.matches ? ['p1', 'p2', 'p3'] : ['p1', 'p2', 'p3', 'p4'];
+      cat.classList.remove('p1', 'p2', 'p3', 'p4');
+      cat.classList.add(spots[Math.floor(Math.random() * spots.length)]);
+    };
+    place();
+    if (narrow.addEventListener) narrow.addEventListener('change', place);
+  }
+
+  /* Nothing animates while the hero is off screen. */
+  if (hero && 'IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      hero.classList.toggle('is-paused', !entries[0].isIntersecting);
+    }, { threshold: 0 }).observe(hero);
+  }
+})();
+</script>

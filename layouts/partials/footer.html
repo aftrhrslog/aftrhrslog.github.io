@@ -1,0 +1,13 @@
+<footer class="site-footer">
+  <div class="inner">
+    <span>&copy; {{ now.Year }} {{ site.Params.wordmark }}</span>
+    <nav class="foot-links" aria-label="Secondary">
+      <a href="{{ "/" | relURL }}">Home</a>
+      <a href="{{ "notes/" | relURL }}">Notes</a>
+      <a href="{{ "now/" | relURL }}">Now</a>
+      <a href="{{ "tags/" | relURL }}">Tags</a>
+      <a href="{{ "about/" | relURL }}">About</a>
+    </nav>
+    <span>Built with <a href="https://gohugo.io/">Hugo</a>.</span>
+  </div>
+</footer>

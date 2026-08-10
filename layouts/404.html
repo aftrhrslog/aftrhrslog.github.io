@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="{{ site.LanguageCode | default "en" }}">
+{{ partial "head.html" . }}
+<body>
+<div class="sheet">
+<nav class="plain-nav" aria-label="Main">
+  <a class="wordmark" href="{{ "/" | relURL }}">Yoon&#39;s Home</a>
+  <ul>
+    {{ range site.Menus.main }}
+    <li><a href="{{ .URL | relURL }}">{{ .Name }}</a></li>
+    {{ end }}
+  </ul>
+</nav>
+
+<div class="notfound">
+  <img src="{{ "img/cat-still.webp" | relURL }}" width="380" height="437"
+       alt="A tabby cat sitting still, looking straight ahead.">
+  <h1>Nothing here</h1>
+  <p>The cat has not seen that page either.</p>
+  <p><a href="{{ "/" | relURL }}">Back home</a></p>
+</div>
+
+{{ partial "footer.html" . }}
+</div>
+</body>
+</html>
