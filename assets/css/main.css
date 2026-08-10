@@ -82,13 +82,12 @@ img { max-width: 100%; height: auto; }
      size, and the sides are trimmed a little more with every pixel lost.  The
      drawing therefore only ever gets smaller as the window narrows — the
      stepped crops used to make it jump larger at 1200px and again at 768px. */
-  --hh: min(540px, 56.28vw, 82vh);
+  --hh: clamp(300px, min(540px, 56.28vw), 82vh);
 
   position: relative;
   overflow: hidden;
   width: 100%;
   height: var(--hh);
-  min-height: 300px;
 }
 
 .stage {
