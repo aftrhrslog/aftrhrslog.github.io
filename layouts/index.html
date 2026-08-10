@@ -10,7 +10,7 @@
     <section class="now" aria-labelledby="now-h">
       <div class="now-head">
         <h2 id="now-h">Now</h2>
-        <time datetime="{{ $latest.Date.Format "2006-01-02" }}">{{ $latest.Date.Format "2 January 2006" }}</time>
+        <time datetime="{{ $latest.Date.Format "2006-01-02" }}">{{ $latest.Date.Format "2006-01-02" }}</time>
       </div>
       {{ $latest.Content }}
       {{ if gt (len .) 1 }}
@@ -22,32 +22,25 @@
   {{ end }}
 {{ end }}
 
-<section class="digest" aria-labelledby="digest-h">
-  <h2 id="digest-h">Latest from each tag</h2>
-  <ul>
-    {{/* A note carrying two tags would otherwise appear twice, so each row
-         falls through to the next unused note in that tag. */}}
-    {{ $shown := slice }}
-    {{ range site.Params.tagOrder }}
-      {{ $name := . }}
-      {{ $slug := . | urlize }}
-      {{ with index site.Taxonomies.tags $slug }}
-        {{ $latest := "" }}
-        {{ range .Pages.ByDate.Reverse }}
-          {{ if and (not $latest) (not (in $shown .RelPermalink)) }}{{ $latest = . }}{{ end }}
-        {{ end }}
-        {{ if $latest }}
-        {{ $shown = $shown | append $latest.RelPermalink }}
-        <li>
-          <a class="tag tag-{{ $slug }}" href="{{ (printf "/tags/%s/" $slug) | relURL }}">{{ $name }}</a>
-          <a class="digest-title" href="{{ $latest.RelPermalink }}">{{ $latest.Title }}</a>
-          <time datetime="{{ $latest.Date.Format "2006-01-02" }}">{{ $latest.Date.Format "2 Jan 2006" }}</time>
-        </li>
-        {{ end }}
-      {{ end }}
+{{/* Six most recent notes, in the same row shape as /notes/.
+     For one note per tag instead, see the block kept in index-by-tag.html.txt */}}
+<section aria-labelledby="recent-h">
+  <div class="section-head">
+    <h2 id="recent-h">Recently</h2>
+    <span class="rule" aria-hidden="true"></span>
+    <a href="{{ "notes/" | relURL }}">all notes &rarr;</a>
+  </div>
+  <ul class="note-list">
+    {{ range first 6 (where site.RegularPages "Section" "notes").ByDate.Reverse }}
+    <li class="note-item">
+      <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+      <div class="meta">
+        {{ partial "tags.html" . }}
+        <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+      </div>
+      <p class="summary">{{ with .Description }}{{ . }}{{ else }}{{ .Summary | plainify | truncate 210 }}{{ end }}</p>
+    </li>
     {{ end }}
   </ul>
 </section>
-
-<p class="more"><a href="{{ "notes/" | relURL }}">All notes &rarr;</a></p>
 {{ end }}
