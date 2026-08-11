@@ -100,7 +100,20 @@ img { max-width: 100%; height: auto; }
   aspect-ratio: var(--art-w) / var(--art-h);
 }
 
-.stage > .art { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage > .art {
+  position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+  background-size: 100% 100%;      /* what an <img> does by default */
+  background-repeat: no-repeat;
+}
+
+/* Exactly one of these matches, and a background is only fetched for the rule
+   that wins, so a reader downloads one picture and never three.  The first
+   selector is the no-script case: with no data-time attribute the day picture
+   is used, which is also what the printed page and old browsers get. */
+html:not([data-time]) .stage > .art,
+html[data-time="day"]    .stage > .art { background-image: url(../img/base.webp); }
+html[data-time="sunset"] .stage > .art { background-image: url(../img/base-sunset.webp); }
+html[data-time="night"]  .stage > .art { background-image: url(../img/base-night.webp); }
 
 /* -- clouds ---------------------------------------------------------------
    One pane per visible slice of sky.  All panes carry the same full-width
@@ -176,6 +189,33 @@ img { max-width: 100%; height: auto; }
 .cat.p3 { left: 68.7948%; top: 52.4634%; }   /* beside the plant         */
 .cat.p4 { left: 83.9690%; top: 31.8096%;     /* on the books, further off */
           width: calc(100% * 323 / var(--art-w)); }
+
+/* -- clouds and cat after dark --------------------------------------------
+   There is one cloud strip and one cat sheet, drawn in daylight; sunset and
+   night recolour them rather than adding files.  Every CSS colour filter is an
+   affine map on RGB and so is any chain of them, which makes the best possible
+   chain findable: these were fitted by least squares to the artist's own
+   day-to-sunset and day-to-night mapping, measured off the artwork itself.
+   The clouds were trained on the distant ridge, the cat on the desk it sits
+   on, because that is the light actually falling on each.
+
+   The filter belongs on the img and not on .track or .cat.  Those are the
+   elements that move, and a filter on a still parent holding moving children
+   has to be re-run every frame; on the image it is baked into the layer once
+   and only the layer is moved afterwards. */
+
+html[data-time="sunset"] .track img {
+  filter: brightness(0.825) saturate(0.430) hue-rotate(-165.6deg) contrast(3.890);
+}
+html[data-time="sunset"] .cat img {
+  filter: brightness(0.753) saturate(1.693) hue-rotate(-2.3deg) contrast(1.054) sepia(0.264);
+}
+html[data-time="night"] .track img {
+  filter: brightness(0.275) saturate(0.889) hue-rotate(13.5deg) contrast(1.203);
+}
+html[data-time="night"] .cat img {
+  filter: brightness(0.925) saturate(1.353) hue-rotate(4.7deg) contrast(1.254) sepia(0.249);
+}
 
 /* -- nav ------------------------------------------------------------------ */
 
@@ -269,13 +309,20 @@ img { max-width: 100%; height: auto; }
 
 /* -- desk edge into the page ---------------------------------------------- */
 
+/* The first stop has to start where the picture stops, or a bright step shows
+   at the join.  Each value is the mean of that artwork's own last four rows,
+   measured rather than picked; the day figure is left exactly as it was.
+   Nothing past the first stop moves: the wood, the paper and the mint belong
+   to the page, and the page does not change with the hour. */
 .desk-fade {
   height: 60px;
   margin-top: -1px;
   background: linear-gradient(to bottom,
-              #2C241F 0%, #7A6247 14%, #CDBC9C 32%, var(--cream) 55%,
+              var(--desk-edge, #2C241F) 0%, #7A6247 14%, #CDBC9C 32%, var(--cream) 55%,
               #F0EFE6 78%, var(--mint) 100%);
 }
+html[data-time="sunset"] { --desk-edge: #211810; }
+html[data-time="night"]  { --desk-edge: #130C02; }
 
 /* ==========================================================================
    Motion preferences and off-screen pausing
@@ -523,15 +570,52 @@ figcaption { font-family: var(--font-sans); font-size: .84rem; color: var(--ink-
   font-size: .84rem;
   color: #4B5A58;
 }
+/* Two rows on purpose.  Four items on one row overflow the measure and wrap,
+   and which item drops depends on the exact width; splitting them means the
+   switch sits at the right of the Hugo line at every size. */
 .site-footer .inner {
   max-width: var(--measure);
   margin: 0 auto;
   display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.site-footer .foot-row {
+  display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  align-items: center;
   justify-content: space-between;
 }
 .site-footer a { color: #365A6E; }
+
+/* -- time switch ---------------------------------------------------------- */
+
+/* Hidden until the script has run: without it the buttons would do nothing. */
+.time-switch { display: none; }
+html[data-time] .time-switch { display: flex; margin-left: auto; }
+
+.time-switch button {
+  font: inherit;
+  font-size: .78rem;
+  line-height: 1;
+  padding: 6px 11px;
+  margin-left: -1px;               /* one shared border between neighbours */
+  cursor: pointer;
+  background: transparent;
+  color: #4B5A58;
+  border: 1px solid #C8DED4;
+  border-radius: 0;
+}
+.time-switch button:first-child { margin-left: 0; border-radius: 3px 0 0 3px; }
+.time-switch button:last-child  { border-radius: 0 3px 3px 0; }
+.time-switch button:hover { color: #1B2224; background: #EDF5F1; }
+.time-switch button[aria-pressed="true"] {
+  background: #365A6E;
+  border-color: #365A6E;
+  color: #fff;
+  position: relative;              /* keeps its own border above its neighbour */
+}
 
 /* -- 404 ------------------------------------------------------------------ */
 
