@@ -8,9 +8,7 @@ I'm someone who tends to think a little too much, look things up for no particul
 
 ## What I Do
 
-I work in **medicine**, where my days are divided between caring for patients, teaching, and research.
-
-It's work I care about, but I've never been particularly good at keeping my curiosity confined to what I do for a living. There has always been something else I wanted to learn, try, or take apart just to see how it works.
+I work in **medicine**. It's work I care about, but I’ve always been curious about things beyond my work. There has always been something else I wanted to learn, try, or take apart just to see how it works.
 
 ## Things I Tinker With
 
