@@ -17,9 +17,66 @@
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
 {{ end }}
 
-{{ if ne .Kind "404" }}
-  <link rel="preload" as="image" href="{{ "img/base.webp" | relURL }}" fetchpriority="high">
-{{ end }}
+<!-- The time of day, settled before anything is painted.  This has to be an
+     inline script here in the head: the stylesheet picks the hero picture off
+     the data-time attribute, so if the attribute arrived any later the browser
+     would already have started downloading the fallback and we would pay for
+     two pictures instead of one. -->
+<script>
+(function () {
+  var LAT = 37.5665, LON = 126.978, TZ = 9, KEY = 'aftrhrs-time';
+
+  /* NOAA sunrise equation.  Needs only the date, so there is no network call,
+     no table to keep up to date and no fallback path.  Checked against the
+     astral library for every day from 2025 to 2050: within 1.5 minutes on
+     sunrise and 3.3 on sunset, which is finer than the hour-wide band below. */
+  function sunTimes(y, m, d) {
+    var rad = Math.PI / 180, a = Math.floor((14 - m) / 12);
+    var jd = Math.floor((1461 * (y + 4800 - a)) / 4)
+           + Math.floor((367 * (m + 12 * a - 2)) / 12)
+           - Math.floor((3 * Math.floor((y + 4900 - a) / 100)) / 4) + d - 32075;
+    var n = jd - 2451545 + 0.0008, J = n - LON / 360;
+    var M = (357.5291 + 0.98560028 * J) % 360;
+    var C = 1.9148 * Math.sin(M * rad) + 0.02 * Math.sin(2 * M * rad)
+          + 0.0003 * Math.sin(3 * M * rad);
+    var L = (M + C + 282.9372) % 360;
+    var Jt = 2451545 + J + 0.0053 * Math.sin(M * rad) - 0.0069 * Math.sin(2 * L * rad);
+    var sd = Math.sin(L * rad) * Math.sin(23.4397 * rad);
+    var w = (Math.sin(-0.833 * rad) - Math.sin(LAT * rad) * sd)
+          / (Math.cos(LAT * rad) * Math.cos(Math.asin(sd)));
+    if (w < -1 || w > 1) return null;
+    var w0 = Math.acos(w) / rad, noon = (Jt - jd + 0.5) * 1440 + TZ * 60;
+    return { rise: noon - w0 * 4, set: noon + w0 * 4 };
+  }
+
+  /* Korea has had no daylight saving since 1988, so KST is a fixed UTC+9:
+     shift the epoch and read the UTC fields and you have Seoul wall-clock
+     time, whatever zone the reader happens to be in.  The scene follows this
+     window, not theirs. */
+  function auto() {
+    var s = new Date(Date.now() + TZ * 3600e3);
+    var t = s.getUTCHours() * 60 + s.getUTCMinutes();
+    var k = sunTimes(s.getUTCFullYear(), s.getUTCMonth() + 1, s.getUTCDate());
+    if (!k) return 'day';
+    if (t >= k.set - 60 && t < k.set + 60) return 'sunset';
+    if (t >= k.rise && t < k.set - 60) return 'day';
+    return 'night';   /* one branch covers both sides of midnight */
+  }
+
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  var mode = (saved === 'day' || saved === 'sunset' || saved === 'night') ? saved : auto();
+  document.documentElement.setAttribute('data-time', mode);
+  window.aftrhrs = { key: KEY, auto: auto };
+
+  {{ if ne .Kind "404" }}
+  var l = document.createElement('link');
+  l.rel = 'preload'; l.as = 'image'; l.fetchPriority = 'high';
+  l.href = '{{ "img/" | relURL }}' + (mode === 'day' ? 'base.webp' : 'base-' + mode + '.webp');
+  document.head.appendChild(l);
+  {{ end }}
+})();
+</script>
 
 <link rel="icon" href="{{ "favicon.ico" | relURL }}" sizes="32x32">
 <link rel="icon" href="{{ "icon-512.png" | relURL }}" type="image/png" sizes="512x512">

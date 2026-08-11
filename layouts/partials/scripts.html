@@ -18,6 +18,38 @@
     if (narrow.addEventListener) narrow.addEventListener('change', place);
   }
 
+  /* The footer switch.  The head script has already chosen a mode and stashed
+     its helpers on window.aftrhrs; this only has to record a choice and swap
+     the attribute.  Auto is stored as the absence of a saved value, so there
+     is nothing to migrate if the boundaries ever move. */
+  var sw = document.querySelector('.time-switch');
+  if (sw && window.aftrhrs) {
+    var KEY = window.aftrhrs.key;
+    var saved = function () {
+      var v = null;
+      try { v = localStorage.getItem(KEY); } catch (e) {}
+      return (v === 'day' || v === 'sunset' || v === 'night') ? v : 'auto';
+    };
+    var mark = function () {
+      var chosen = saved(), b = sw.querySelectorAll('button');
+      for (var i = 0; i < b.length; i++) {
+        b[i].setAttribute('aria-pressed', b[i].getAttribute('data-time') === chosen);
+      }
+    };
+    sw.addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      var v = b.getAttribute('data-time');
+      try {
+        if (v === 'auto') localStorage.removeItem(KEY); else localStorage.setItem(KEY, v);
+      } catch (err) {}
+      document.documentElement.setAttribute('data-time',
+        v === 'auto' ? window.aftrhrs.auto() : v);
+      mark();
+    });
+    mark();
+  }
+
   /* Nothing animates while the hero is off screen. */
   if (hero && 'IntersectionObserver' in window) {
     new IntersectionObserver(function (entries) {

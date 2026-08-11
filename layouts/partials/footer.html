@@ -1,13 +1,28 @@
 <footer class="site-footer">
   <div class="inner">
-    <span>&copy; {{ now.Year }} {{ site.Params.wordmark }}</span>
-    <nav class="foot-links" aria-label="Secondary">
-      <a href="{{ "/" | relURL }}">Home</a>
-      <a href="{{ "notes/" | relURL }}">Notes</a>
-      <a href="{{ "now/" | relURL }}">Now</a>
-      <a href="{{ "tags/" | relURL }}">Tags</a>
-      <a href="{{ "about/" | relURL }}">About</a>
-    </nav>
-    <span>Built with <a href="https://gohugo.io/">Hugo</a>.</span>
+    <div class="foot-row">
+      <span>&copy; {{ now.Year }} {{ site.Params.wordmark }}</span>
+      <nav class="foot-links" aria-label="Secondary">
+        <a href="{{ "/" | relURL }}">Home</a>
+        <a href="{{ "notes/" | relURL }}">Notes</a>
+        <a href="{{ "now/" | relURL }}">Now</a>
+        <a href="{{ "tags/" | relURL }}">Tags</a>
+        <a href="{{ "about/" | relURL }}">About</a>
+      </nav>
+    </div>
+    <div class="foot-row">
+      <span>Built with <a href="https://gohugo.io/">Hugo</a>.</span>
+      {{ if ne .Kind "404" }}
+      {{/* Auto follows the sun over Seoul; the other three pin the scene.
+           The 404 page has no hero, so the switch would have nothing to act
+           on there. */}}
+      <div class="time-switch" role="group" aria-label="Time of day">
+        <button type="button" data-time="auto">Auto</button>
+        <button type="button" data-time="day">Day</button>
+        <button type="button" data-time="sunset">Sunset</button>
+        <button type="button" data-time="night">Night</button>
+      </div>
+      {{ end }}
+    </div>
   </div>
 </footer>

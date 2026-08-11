@@ -1,8 +1,12 @@
 <header class="hero" id="hero">
   <div class="stage">
-    <img class="art" src="{{ "img/base.webp" | relURL }}" width="1672" height="941"
-         alt="A desk by a wide window: a speaker on a stand, an open laptop, a small potted plant and a stack of books, with a river valley and mountains beyond."
-         fetchpriority="high" decoding="async">
+    <!-- A background rather than an <img>: the stylesheet holds one rule per
+         time of day and the browser fetches only the one that matches, so the
+         three pictures cannot all end up on the wire.  The element is sized
+         entirely by .stage, so this is pixel-identical to the <img> it
+         replaces; role and aria-label carry what alt used to. -->
+    <div class="art" role="img"
+         aria-label="A desk by a wide window: a speaker on a stand, an open laptop, a small potted plant and a stack of books, with a river valley and mountains beyond."></div>
 
     {{ $far  := "img/clouds-far.webp"  | relURL }}
     {{ $near := "img/clouds-near.webp" | relURL }}
