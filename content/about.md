@@ -2,37 +2,26 @@
 title: "About"
 ---
 
-I'm someone who tends to think a little too much, look things up for no
-particular reason, and occasionally spend far more time on a subject than I
-originally intended.
+I'm someone who tends to think a little too much, look things up for no particular reason, and occasionally spend far more time on a subject than I originally intended.
 
 **AftrHrs is where I keep some of that.**
 
 ## What I Do
 
-I work in **medicine**, where my days are divided between caring for patients,
-teaching, and research.
+I work in **medicine**, where my days are divided between caring for patients, teaching, and research.
 
-It's work I care about, but I've never been particularly good at keeping my
-curiosity confined to what I do for a living. There has always been something
-else I wanted to learn, try, or take apart just to see how it works.
+It's work I care about, but I've never been particularly good at keeping my curiosity confined to what I do for a living. There has always been something else I wanted to learn, try, or take apart just to see how it works.
 
 ## Things I Tinker With
 
-I first picked up **R** thinking programming might be useful for my career.
-Somewhere along the way, it became something I genuinely enjoyed, perhaps a
-small revival of my childhood dream of becoming a programmer.
+I first picked up **R**, thinking R programming skills might be useful for my career.
+Somewhere along the way, it became something I genuinely enjoyed, perhaps a small revival of my childhood dream of becoming a programmer.
 
-With little formal training, *I learned by doing*: statistics, text mining,
-machine learning, deep learning, and plenty of toy projects. Some of those
-skills eventually found their way into my professional research.
+With little formal training, *I learned by doing*: statistics, text mining, machine learning, deep learning, and plenty of toy projects. Some of those skills eventually found their way into my professional research.
 
-I never quite made the jump from **R to Python** on my own. Writing code from
-scratch was always a different story. Then AI came along, and **vibe coding**
-changed the way I could approach making things.
+I never quite made the jump from **R to Python** on my own. Writing code from scratch was always a different story. Then AI came along, and **vibe coding** changed the way I could approach making things.
 
-These days, I'm less interested in mastering a particular language and more
-interested in **turning an idea into something that works**. That might involve
+These days, I'm interested in **turning an idea into something that works**. That might involve
 Python, JavaScript, Godot, Hugo, or something entirely new.
 
 Games, research tools, websites, experiments with deep learning, or simply
@@ -64,13 +53,6 @@ a detour.
 ## Behind AftrHrs
 
 This isn't a personal brand or a polished account of who I am.
-
-I'd rather keep the person behind AftrHrs somewhat in the background. The
-details aren't particularly important here. I'd rather let the things I choose
-to write about tell that story gradually.
-
-Some entries may be useful. Others may simply be snapshots of what happened to
-occupy my mind at the time.
 
 Over time, I hope this becomes less of a collection of posts and more of a
 record of how my **interests, opinions, and perspective** have changed.
