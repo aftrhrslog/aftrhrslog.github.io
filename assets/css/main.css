@@ -128,8 +128,28 @@ html[data-time="night"]  .stage > .art { background-image: url(../img/base-night
   left:  calc(100% * var(--px) / var(--art-w));
   width: calc(100% * var(--pw) / var(--art-w));
 }
-.pane-centre { --px: 207;  --pw: 1289; }
-.pane-right  { --px: 1561; --pw: 111; }
+/* Where each slice of sky begins and ends, in artwork columns.  A pane is drawn
+   over the artwork, so a pane that runs even one column into a window post
+   paints cloud onto the wood.  The posts are anti-aliased, so their edge is a
+   blend of wood and sky one or two columns wide; each pane therefore stops at
+   the last column that is still sky.
+
+   Measured off the artwork as distance from the sky's own colour, averaged over
+   the rows above the tree line.  Open sky reads 1.8, the soft rim the painter
+   put beside each post reads 5-7, and a column carrying any wood jumps to 20
+   and beyond:
+
+     left post   ... 135: 7.8   136: 14.3 | 137: 28.2  138: 85.4  139: 224.8
+     post   ... 206: 184.7 | 207: 39.3  208: 11.3  209: 5.1 ... centre
+     centre ... 1492: 7.2  1493: 9.5 | 1494: 19.8  1495: 44.2  1496: 221.4
+     right post  ... 1561: 92.9  1562: 24.4 | 1563: 8.7  1564: 4.5 ... right
+
+   The bar is drawn after the last value under about 15, which is where the
+   left-hand pane already sat.  The cost is a hairline of still sky against each
+   post, at most two artwork pixels, about one screen pixel at full size. */
+.pane-left   { --px: 0;    --pw: 137; }    /*    0 - 136  */
+.pane-centre { --px: 208;  --pw: 1286; }   /*  208 - 1493 */
+.pane-right  { --px: 1563; --pw: 109; }    /* 1563 - 1671 */
 
 .track {
   position: absolute;
@@ -148,6 +168,45 @@ html[data-time="night"]  .stage > .art { background-image: url(../img/base-night
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
 }
+
+/* -- the tree in the left pane --------------------------------------------
+   The other two slices are empty sky for the whole height of the strip, so a
+   pane may simply cover them.  The left slice has the tree in it from y 91
+   down, which the strip would otherwise pass in front of.
+
+   So the artwork is laid back over the strip through a mask cut from the
+   artwork itself.  Overlay and background are the same picture at the same
+   place and the same size, so the overlay cannot disagree with what is under
+   it however the mask falls; and because the mask keeps the painter's own
+   anti-aliased leaf edges as partial alpha, a cloud is seen through the edge
+   of a leaf by exactly the amount that edge was already translucent.  There
+   is no boundary between overlay and artwork for a seam to appear at.
+
+   One greyscale file covers all three hours: the overlay takes whichever
+   picture the hour has already fetched, so sunset and night need no asset of
+   their own and no colour filter to match one.                              */
+
+.fore-left {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width:  calc(100% * 137 / var(--art-w));
+  height: calc(100% * 258 / var(--art-h));
+  /* The background is the whole artwork, scaled so that its top-left 137x258
+     corner lands exactly on this box. */
+  background-size: calc(100% * var(--art-w) / 137) calc(100% * var(--art-h) / 258);
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  -webkit-mask-image: url(../img/fore-left.png);
+          mask-image: url(../img/fore-left.png);
+  -webkit-mask-size: 100% 100%;
+          mask-size: 100% 100%;
+  pointer-events: none;
+}
+html:not([data-time]) .fore-left,
+html[data-time="day"]    .fore-left { background-image: url(../img/base.webp); }
+html[data-time="sunset"] .fore-left { background-image: url(../img/base-sunset.webp); }
+html[data-time="night"]  .fore-left { background-image: url(../img/base-night.webp); }
 
 /* -- cat ------------------------------------------------------------------
    36 drawings from one sheet, played straight through at 7 fps.  Three of
