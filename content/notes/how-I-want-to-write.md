@@ -7,13 +7,13 @@ tags:
 
 I tend to overthink things. In particular, I have a habit of getting stuck on *Why?*
 
-This tendency has served me well when it comes to problem-solving, especially in subjects like math and science.
+This tendency has <mark>served me</mark> well when it comes to problem-solving, especially in subjects like math and science.
 
 Recently, however, I’ve realized that the same habit can be harmful when I turn it toward my own feelings. Reflecting too much on how I feel can easily make me feel worse.
 
-The posts I’ve written so far reflect this side of my personality as well. They tend to be long and full of reflection. But I’ve realized that writing about emotionally intense experiences can itself send me into a downward spiral if I approach it the wrong way—especially when I keep asking *Why?* about every feeling I had. There’s little point in endlessly searching for psychological explanations when there may not be a clear answer. More often than not, it just gives me more to ruminate on.
+The posts I’ve written so far reflect this side of my personality as well. They tend to be long and full of reflection. But I’ve realized that writing about emotionally intense experiences can itself send me into <mark>a downward spiral</mark> if I approach it the wrong way—especially when I keep asking *Why?* about every feeling I had. There’s little point in endlessly <mark>searching for psychological explanations</mark> when there may not be a clear answer. More often than not, it just gives me more to <mark>ruminate</mark> on.
 
-So from now on, I’m setting a guideline for how I write my posts. I want to follow it to minimize the negative effects that writing can have on my mental health.
+So from now on, I’m setting a guideline for how I write my posts. I want to follow it to minimize <mark>the negative effects that writing can have on my mental health.</mark>
 
 In my writing, I’ll focus mainly on three questions:
 
@@ -35,4 +35,4 @@ Keep this part relatively short.
 
 One or two sentences may be enough. Keep the interpretation brief. Don’t keep digging. Don’t force a conclusion. Keep the analysis light.
 
-Hopefully, writing this way will let me preserve my experiences without getting lost in analyzing them.
+Hopefully, writing this way will let me preserve my experiences without <mark>getting lost</mark> in analyzing them.
