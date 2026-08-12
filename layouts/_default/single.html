@@ -22,10 +22,10 @@
 
   {{ if ne .Section "" }}
   <nav class="note-nav" aria-label="More notes">
-    {{ with .PrevInSection }}
+    {{ with .NextInSection }}
       <a class="prev" href="{{ .RelPermalink }}"><span class="dir">Newer</span>{{ .Title }}</a>
     {{ end }}
-    {{ with .NextInSection }}
+    {{ with .PrevInSection }}
       <a class="next" href="{{ .RelPermalink }}"><span class="dir">Older</span>{{ .Title }}</a>
     {{ end }}
   </nav>
