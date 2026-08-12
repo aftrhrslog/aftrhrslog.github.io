@@ -22,24 +22,33 @@
   {{ end }}
 {{ end }}
 
-{{/* Six most recent notes, in the same row shape as /notes/.
-     For one note per tag instead, see the block kept in index-by-tag.html.txt */}}
-<section aria-labelledby="recent-h">
+<section aria-labelledby="digest-h">
   <div class="section-head">
-    <h2 id="recent-h">Recently</h2>
+    <h2 id="digest-h">Latest from each tag</h2>
     <span class="rule" aria-hidden="true"></span>
     <a href="{{ "notes/" | relURL }}">all notes &rarr;</a>
   </div>
   <ul class="note-list">
-    {{ range first 6 (where site.RegularPages "Section" "notes").ByDate.Reverse }}
-    <li class="note-item">
-      <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
-      <div class="meta">
-        {{ partial "tags.html" . }}
-        <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
-      </div>
-      <p class="summary">{{ with .Description }}{{ . }}{{ else }}{{ .Summary | plainify | truncate 210 }}{{ end }}</p>
-    </li>
+    {{ $shown := slice }}
+    {{ range site.Params.tagOrder }}
+      {{ $slug := . | urlize }}
+      {{ with index site.Taxonomies.tags $slug }}
+        {{ $latest := "" }}
+        {{ range .Pages.ByDate.Reverse }}
+          {{ if and (not $latest) (not (in $shown .RelPermalink)) }}{{ $latest = . }}{{ end }}
+        {{ end }}
+        {{ if $latest }}
+        {{ $shown = $shown | append $latest.RelPermalink }}
+        <li class="note-item">
+          <h2><a href="{{ $latest.RelPermalink }}">{{ $latest.Title }}</a></h2>
+          <div class="meta">
+            {{ partial "tags.html" $latest }}
+            <time datetime="{{ $latest.Date.Format "2006-01-02" }}">{{ $latest.Date.Format "2006-01-02" }}</time>
+          </div>
+          <p class="summary">{{ with $latest.Description }}{{ . }}{{ else }}{{ $latest.Summary | plainify | truncate 210 }}{{ end }}</p>
+        </li>
+        {{ end }}
+      {{ end }}
     {{ end }}
   </ul>
 </section>
