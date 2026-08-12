@@ -1,6 +1,6 @@
 ---
 title: How I Want to Write
-date: 2026-08-12T17:10:40+09:00
+date: 2026-08-12T15:15:40+09:00
 tags:
   - Thoughts
 ---
