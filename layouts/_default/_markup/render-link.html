@@ -1,0 +1,16 @@
+{{- /* Every link written in markdown passes through here.
+
+     A link that leaves the site opens in a new tab; one that stays on it does
+     not, because taking over the reader's tab is only rude when they are being
+     sent somewhere else.  "Leaves the site" is decided by the destination
+     actually starting with http:// or https:// and not with our own baseURL,
+     so a full https://aftrhrslog.github.io/notes/ link is still treated as
+     internal.  Relative links, anchors, and mailto: are left alone.
+
+     rel="noopener" stops the opened page reaching back through window.opener;
+     noreferrer also withholds the referring URL. */ -}}
+{{- $d := .Destination -}}
+{{- $abs := or (hasPrefix $d "http://") (hasPrefix $d "https://") -}}
+{{- $mine := hasPrefix $d (strings.TrimSuffix "/" site.BaseURL) -}}
+{{- $out := and $abs (not $mine) -}}
+<a href="{{ $d | safeURL }}"{{ with .Title }} title="{{ . }}"{{ end }}{{ if $out }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .Text | safeHTML }}</a>
