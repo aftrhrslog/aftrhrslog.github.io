@@ -10,7 +10,7 @@
 
     {{ $far  := "img/clouds-far.webp"  | relURL }}
     {{ $near := "img/clouds-near.webp" | relURL }}
-    {{ range slice "centre" "right" }}
+    {{ range slice "left" "centre" "right" }}
     <div class="pane pane-{{ . }}" aria-hidden="true">
       <div class="track track-far">
         <img src="{{ $far }}" width="1672" height="260" alt="" decoding="async">
@@ -22,6 +22,12 @@
       </div>
     </div>
     {{ end }}
+
+    <!-- The left slice is the only one with something standing in front of the
+         sky, so the artwork is laid back over its cloud strip through a mask
+         cut from the artwork itself.  It has to follow the panes and precede
+         the cat: clouds are behind the tree, the cat is in front of both. -->
+    <div class="fore-left" aria-hidden="true"></div>
 
     <div class="cat p2" id="cat" aria-hidden="true">
       <img src="{{ "img/cat-strip.webp" | relURL }}" width="13680" height="437"
