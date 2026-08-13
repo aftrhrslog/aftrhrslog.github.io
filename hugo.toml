@@ -26,19 +26,14 @@ disableKinds = ['rss']
   weight = 1
 
 [[menu.main]]
-  name = 'Vocab'
-  url = '/vocab/'
-  weight = 2
-
-[[menu.main]]
   name = 'About'
   url = '/about/'
-  weight = 3
+  weight = 2
 
 [[menu.main]]
   name = 'Search'
   url = '/search/'
-  weight = 4
+  weight = 3
 
 [markup]
   [markup.goldmark.renderer]
