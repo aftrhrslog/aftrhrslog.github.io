@@ -30,11 +30,43 @@
     {{ range $k := $keys }}
       {{ $hits := where $all "key" $k }}
       {{ $first := index $hits 0 }}
+
+      {{/* One phrase can turn up in several notes, and the same sentence can
+           hold it twice.  Quotes that read the same word for word are folded
+           into one — the highlight may sit on a different occurrence, but the
+           sentence is the sentence — and the notes they came from are listed
+           side by side underneath. */}}
+      {{ $quotes := slice }}
+      {{ range $hits }}
+        {{ $h := . }}
+        {{ $bare := $h.sent | replaceRE `</?mark>` "" }}
+        {{ $found := -1 }}
+        {{ range $qi, $q := $quotes }}
+          {{ if eq $q.bare $bare }}{{ $found = $qi }}{{ end }}
+        {{ end }}
+        {{ if lt $found 0 }}
+          {{ $quotes = $quotes | append (dict "bare" $bare "sent" $h.sent
+              "srcs" (slice (dict "url" $h.url "label" $h.label))) }}
+        {{ else }}
+          {{ $q := index $quotes $found }}
+          {{ if not (where $q.srcs "label" $h.label) }}
+            {{ $q = merge $q (dict "srcs" ($q.srcs | append (dict "url" $h.url "label" $h.label))) }}
+            {{ $rebuilt := slice }}
+            {{ range $qi, $qq := $quotes }}
+              {{ $rebuilt = $rebuilt | append (cond (eq $qi $found) $q $qq) }}
+            {{ end }}
+            {{ $quotes = $rebuilt }}
+          {{ end }}
+        {{ end }}
+      {{ end }}
+
       <li>
         <a class="vocab-term" href="{{ $first.url }}">{{ $first.text }}</a>
-        {{ range $hits }}
+        {{ range $quotes }}
           <p class="vocab-sent">{{ .sent | safeHTML }}
-            <a class="vocab-src" href="{{ .url }}">{{ .label }}</a>
+            <span class="vocab-srcs">
+              {{- range .srcs }}<a class="vocab-src" href="{{ .url }}">{{ .label }}</a>{{ end -}}
+            </span>
           </p>
         {{ end }}
       </li>
