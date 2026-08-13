@@ -18,7 +18,19 @@
   </details>
   {{ end }}
 
-  {{ .Content }}
+  {{/* Each <mark> picks up an id in document order, so the Vocab page can
+       send a phrase back to the exact spot it was highlighted.  Goldmark
+       passes the tag through untouched, which leaves nothing to hook a
+       render hook onto; replacing one occurrence at a time is the way to
+       count them at build time rather than in the browser. */}}
+  {{ $body := .Content }}
+  {{ $marks := len (findRE `<mark>` $body) }}
+  {{ if gt $marks 0 }}
+    {{ range $i := seq 1 $marks }}
+      {{ $body = replace $body "<mark>" (printf `<mark id="m%d">` $i) 1 }}
+    {{ end }}
+  {{ end }}
+  {{ $body | safeHTML }}
 
   {{ if ne .Section "" }}
   <nav class="note-nav" aria-label="More notes">
