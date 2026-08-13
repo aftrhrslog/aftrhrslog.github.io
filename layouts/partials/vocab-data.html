@@ -55,6 +55,14 @@
         {{- $term := index (split (index $chunks $i) "@@E@@") 0 -}}
         {{- $stop := or (hasSuffix $term ".") (or (hasSuffix $term "!") (hasSuffix $term "?")) -}}
 
+        {{/* What gets listed is the phrase itself, without the punctuation
+             that happened to fall inside the mark: a trailing comma or full
+             stop belongs to the sentence, not to the phrase.  A question or
+             exclamation mark is part of how the phrase is said, so it stays.
+             The cut above still reads the mark as written, so a phrase that
+             ends a sentence goes on ending its quote. */}}
+        {{- $tidy := $term | replaceRE `[.,;:]+$` "" | strings.TrimSpace -}}
+
         {{- $out := "" -}}
         {{- range $j, $c := $chunks -}}
           {{- if eq $j 0 -}}
@@ -74,7 +82,7 @@
           {{- end -}}
         {{- end -}}
 
-        {{- with strings.TrimSpace $term -}}
+        {{- with $tidy -}}
           {{- $url := $p.RelPermalink -}}
           {{- if $anchored }}{{ $url = printf "%s#m%d" $p.RelPermalink $n }}{{ end -}}
           {{- $all = $all | append (dict
