@@ -29,9 +29,16 @@
          the cat: clouds are behind the tree, the cat is in front of both. -->
     <div class="fore-left" aria-hidden="true"></div>
 
-    <div class="cat p2" id="cat" aria-hidden="true">
+    {{/* The cat is a quiet way through to the vocabulary list.  The link is
+         a shape laid over the drawing rather than the whole frame: half of
+         that 380 × 437 box is empty sky and desk, and a click there should
+         do nothing.  aria-hidden cannot stay now that something inside can
+         take focus, so the label carries the meaning instead. */}}
+    <div class="cat p2" id="cat">
       <img src="{{ "img/cat-strip.webp" | relURL }}" width="13680" height="437"
-           alt="" decoding="async" fetchpriority="low">
+           alt="" decoding="async" fetchpriority="low" draggable="false">
+      <a class="cat-link" href="{{ "vocab/" | relURL }}" aria-label="Vocab"
+         {{- if eq .RelPermalink ("vocab/" | relURL) }} aria-current="page"{{ end }}></a>
     </div>
   </div>
 

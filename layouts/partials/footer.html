@@ -1,13 +1,12 @@
 <footer class="site-footer">
   <div class="inner">
     <div class="foot-row">
-      <span>&copy; {{ now.Year }} {{ site.Params.wordmark }}</span>
+      <span>&copy; {{ now.Year }} <a class="foot-brand" href="{{ "/" | relURL }}">{{ site.Params.wordmark }}</a></span>
       <nav class="foot-links" aria-label="Secondary">
-        <a href="{{ "/" | relURL }}">Home</a>
         <a href="{{ "notes/" | relURL }}">Notes</a>
         <a href="{{ "now/" | relURL }}">Now</a>
-        <a href="{{ "tags/" | relURL }}">Tags</a>
-        <a href="{{ "about/" | relURL }}">About</a>
+        <a href="{{ "vocab/" | relURL }}">Vocab</a>
+        <a href="{{ "quiz/" | relURL }}">Quiz</a>
       </nav>
     </div>
     <div class="foot-row">
