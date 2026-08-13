@@ -1405,7 +1405,11 @@ mark:target { outline: 2px solid var(--accent); outline-offset: 2px; }
   text-decoration: none;
 }
 .quiz-missed a:hover { text-decoration: underline; text-underline-offset: 3px; }
-.quiz-again { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+/* The row at the end holds two buttons that differ only in fill.  The top
+   margin .quiz-next carries between questions would be taken out of its
+   height here, where the row stretches its children, so it is dropped. */
+.quiz-again { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 22px; }
+.quiz-again .quiz-next { margin-top: 0; }
 
 /* Before the collection is big enough to draw from. */
 .quiz-locked {
