@@ -6,7 +6,7 @@ tags:
 ---
 Dear my son,
 
-When people applaud you, accept their praise graciously. <mark>Take pride</mark> in what you’ve earned, but keep it in perspective. Let your <mark>sense of worth</mark> come from within rather than from other people’s approval. People sometimes compliment you simply because it’s polite, so don’t mistake <mark>courtesy</mark> for genuine respect.
+When people applaud you, accept their praise graciously. <mark>Take pride</mark> in what you’ve earned, but <mark>keep it in perspective.</mark> Let your <mark>sense of worth</mark> come from within rather than from other people’s approval. People sometimes compliment you simply because it’s polite, so don’t mistake <mark>courtesy</mark> for genuine respect.
 
 If you find yourself in a position of power someday, <mark>stay grounded.</mark> The higher you rise, the harder it may be for people to be honest with you. A smile or a compliment doesn’t always mean that someone is comfortable with the way you’ve treated them.
 
