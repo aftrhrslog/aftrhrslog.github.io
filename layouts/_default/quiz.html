@@ -1,0 +1,219 @@
+{{ define "main" }}
+{{ $all := partial "vocab-data.html" . }}
+{{ $min := site.Params.quizMinimum | default 50 }}
+
+{{/* One question per phrase, prepared here so the browser only has to pick
+     and shuffle.  Four things are done to stop a question giving itself
+     away, all of them at this stage:
+
+       · the phrase is stripped of its closing punctuation and its first
+         letter lowered, so a full stop or a capital cannot mark the answer
+       · its length in words is carried along, so the browser can draw
+         distractors of roughly the same size
+       · a phrase with fewer than four words of sentence left around it is
+         dropped: there would be nothing to go on
+       · nothing else is needed for the fourth — a phrase that shows up in
+         the quote is caught by the browser reading the quote itself */}}
+
+{{ $seen := slice }}
+{{ $items := slice }}
+{{ range $all }}
+  {{ if not (in $seen .key) }}
+    {{ $seen = $seen | append .key }}
+    {{ $term := .text | replaceRE `[.!?,;:]+$` "" | strings.TrimSpace }}
+    {{ $shown := printf "%s%s" (lower (substr $term 0 1)) (substr $term 1) }}
+    {{ $quote := .sent | replaceRE `<mark>.*?</mark>` "____" }}
+    {{ if ge (countwords (replace $quote "____" "")) 4 }}
+      {{ $items = $items | append (dict
+          "a" $shown
+          "w" (countwords $term)
+          "q" $quote
+          "u" .url) }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+
+<div class="page-head">
+  <h1>{{ .Title }}</h1>
+  {{ .Content }}
+</div>
+
+{{ if lt (len $items) $min }}
+  {{/* Below the threshold there are too few phrases of any one length to
+       surround an answer with plausible company, so the quiz waits. */}}
+  <div class="quiz-locked">
+    <p class="quiz-locked-count"><strong>{{ len $items }}</strong> / {{ $min }}</p>
+    <p>The quiz opens once {{ $min }} phrases have been collected. Until then there
+      are too few of a similar length to make the wrong answers worth reading.</p>
+    <p><a href="{{ "vocab/" | relURL }}">See what has been collected so far &rarr;</a></p>
+  </div>
+{{ else }}
+  <div class="quiz" id="quiz">
+    <div class="quiz-bar">
+      <p class="quiz-meta" id="quiz-meta" role="status" aria-live="polite"></p>
+    </div>
+    <div class="quiz-body" id="quiz-body"></div>
+    <noscript>
+      <p>The quiz needs JavaScript. The phrases themselves are all on the
+        <a href="{{ "vocab/" | relURL }}">Vocab page</a>.</p>
+    </noscript>
+  </div>
+
+  <script>
+  (function () {
+    var TAKE = 10, OPTS = 4;
+
+    /* The questions are cut at build time; jsonify escapes < > and & on the
+       way out, so nothing in a note can close this tag early. */
+    var DATA = {{ $items | jsonify | safeJS }};
+
+    var body = document.getElementById('quiz-body');
+    var meta = document.getElementById('quiz-meta');
+    if (!body || DATA.length < OPTS) return;
+
+    function shuffle(a) {
+      for (var i = a.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t;
+      }
+      return a;
+    }
+
+    /* Distractors come from the vocabulary itself, nearest in length first
+       so the shape of the blank gives nothing away, and never a phrase that
+       is sitting in the quote in plain sight. */
+    function build(pool) {
+      return shuffle(pool.slice()).slice(0, TAKE).map(function (item) {
+        var low = item.q.toLowerCase();
+        var cand = DATA.filter(function (d) {
+          return d.a !== item.a && low.indexOf(d.a.toLowerCase()) === -1;
+        });
+        cand.sort(function (x, y) {
+          return Math.abs(x.w - item.w) - Math.abs(y.w - item.w);
+        });
+        var near = shuffle(cand.slice(0, (OPTS - 1) * 3)).slice(0, OPTS - 1);
+        return {
+          q: item.q, a: item.a, u: item.u,
+          opts: shuffle(near.map(function (d) { return d.a; }).concat([item.a]))
+        };
+      });
+    }
+
+    var quiz, at, score, wrong;
+
+    function start(pool) {
+      quiz = build(pool); at = 0; score = 0; wrong = [];
+      render();
+    }
+
+    function el(name, cls, text) {
+      var n = document.createElement(name);
+      if (cls) n.className = cls;
+      if (text) n.textContent = text;
+      return n;
+    }
+
+    function render() {
+      meta.textContent = 'Question ' + (at + 1) + ' of ' + quiz.length +
+                         '  \u00b7  score ' + score;
+      var item = quiz[at];
+      body.textContent = '';
+
+      var bits = item.q.split('____');
+      var q = el('p', 'quiz-q');
+      q.appendChild(document.createTextNode(bits[0]));
+      q.appendChild(el('span', 'quiz-blank'));
+      q.appendChild(document.createTextNode(bits[1] || ''));
+      body.appendChild(q);
+
+      var box = el('div', 'quiz-opts');
+      item.opts.forEach(function (opt, i) {
+        var b = el('button', null);
+        b.type = 'button';
+        b.appendChild(el('span', 'quiz-key', String(i + 1)));
+        b.appendChild(document.createTextNode(opt));
+        b.setAttribute('data-opt', opt);
+        b.onclick = function () { answer(opt, box); };
+        box.appendChild(b);
+      });
+      body.appendChild(box);
+    }
+
+    function answer(picked, box) {
+      var item = quiz[at], right = picked === item.a;
+      if (right) { score++; } else { wrong.push(item); }
+
+      var btns = box.querySelectorAll('button');
+      for (var i = 0; i < btns.length; i++) {
+        var b = btns[i], val = b.getAttribute('data-opt');
+        b.disabled = true;
+        if (val === item.a) { b.className = 'is-right'; }
+        else if (val === picked) { b.className = 'is-wrong'; }
+        else { b.className = 'is-dim'; }
+      }
+
+      var note = el('div', 'quiz-note');
+      note.appendChild(el('span', right ? 'is-right' : 'is-wrong',
+                          right ? 'Correct' : 'Not quite'));
+      var link = el('a', null, 'Read it in context \u2192');
+      link.href = item.u;
+      note.appendChild(link);
+      body.appendChild(note);
+
+      var next = el('button', 'quiz-next',
+                    at === quiz.length - 1 ? 'See result' : 'Next question');
+      next.type = 'button';
+      next.onclick = function () { at++; at < quiz.length ? render() : finish(); };
+      body.appendChild(next);
+      next.focus();
+    }
+
+    function finish() {
+      meta.textContent = 'Done';
+      body.textContent = '';
+      body.appendChild(el('p', 'quiz-score',
+        'You got ' + score + ' of ' + quiz.length + '.'));
+
+      if (wrong.length) {
+        body.appendChild(el('p', 'quiz-missed-head',
+          wrong.length === 1 ? 'One to look at again:' : 'Ones to look at again:'));
+        var list = el('ul', 'quiz-missed');
+        wrong.forEach(function (w) {
+          var li = el('li');
+          var a = el('a', null, w.a);
+          a.href = w.u;
+          li.appendChild(a);
+          list.appendChild(li);
+        });
+        body.appendChild(list);
+      }
+
+      var row = el('div', 'quiz-again');
+      if (wrong.length) {
+        var again = el('button', 'quiz-next', 'Try these again');
+        again.type = 'button';
+        again.onclick = function () { start(wrong); };
+        row.appendChild(again);
+      }
+      var fresh = el('button', wrong.length ? null : 'quiz-next', 'New quiz');
+      fresh.type = 'button';
+      fresh.onclick = function () { start(DATA); };
+      row.appendChild(fresh);
+      body.appendChild(row);
+      row.querySelector('button').focus();
+    }
+
+    /* 1 to 4 answer as well as the mouse. */
+    document.addEventListener('keydown', function (e) {
+      var n = parseInt(e.key, 10);
+      if (!(n >= 1 && n <= OPTS)) return;
+      var box = body.querySelector('.quiz-opts');
+      if (!box) return;
+      var b = box.querySelectorAll('button')[n - 1];
+      if (b && !b.disabled) b.click();
+    });
+
+    start(DATA);
+  })();
+  </script>
+{{ end }}
+{{ end }}

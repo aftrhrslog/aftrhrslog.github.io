@@ -1,0 +1,128 @@
+{{ define "main" }}
+{{ $all := partial "vocab-data.html" . }}
+
+{{/* Notes arrive newest first, so first sight of a phrase is its latest
+     sighting and the list needs no second sort. */}}
+{{ $keys := slice }}
+{{ range $all }}
+  {{ if not (in $keys .key) }}{{ $keys = $keys | append .key }}{{ end }}
+{{ end }}
+
+<div class="page-head">
+  <h1>{{ .Title }}</h1>
+  {{ .Content }}
+</div>
+
+<article class="vocab">
+  <div class="vocab-bar">
+    <p class="vocab-count">
+      <strong>{{ len $keys }}</strong> {{ cond (eq (len $keys) 1) "phrase" "phrases" }}
+      from {{ len (where site.RegularPages "Section" "notes") }} notes
+    </p>
+    <div class="vocab-sort" role="group" aria-label="Order">
+      <button type="button" data-sort="latest" aria-pressed="true">Latest</button>
+      <button type="button" data-sort="oldest" aria-pressed="false">Oldest</button>
+      <button type="button" data-sort="random" aria-pressed="false">Random</button>
+    </div>
+  </div>
+
+  <ol class="vocab-list" id="vocab-list">
+    {{ range $k := $keys }}
+      {{ $hits := where $all "key" $k }}
+      {{ $first := index $hits 0 }}
+      <li>
+        <a class="vocab-term" href="{{ $first.url }}">{{ $first.text }}</a>
+        {{ range $hits }}
+          <p class="vocab-sent">{{ .sent | safeHTML }}
+            <a class="vocab-src" href="{{ .url }}">{{ .label }}</a>
+          </p>
+        {{ end }}
+      </li>
+    {{ end }}
+  </ol>
+
+  {{/* Fifty to a page, turned in the browser: the whole list is one page as
+       far as Hugo is concerned, and paging it here keeps Random able to
+       shuffle the entire set rather than whatever page you happen to be on.
+       Hidden until the script runs, so a browser without it simply gets the
+       list whole rather than a pager that does nothing. */}}
+  <nav class="pager vocab-pager" id="vocab-pager" aria-label="Pagination" hidden>
+    <button type="button" data-page="prev">&larr; Prev</button>
+    <span id="vocab-range"></span>
+    <button type="button" data-page="next">Next &rarr;</button>
+  </nav>
+</article>
+
+<script>
+(function () {
+  var PER   = 50;
+  var list  = document.getElementById('vocab-list');
+  var bar   = document.querySelector('.vocab-sort');
+  var pager = document.getElementById('vocab-pager');
+  var range = document.getElementById('vocab-range');
+  if (!list || !bar || !pager) return;
+
+  /* The build hands the list over newest first, so latest is simply the
+     order it arrived in and oldest is that order reversed. */
+  var latest = Array.prototype.slice.call(list.children);
+  var order  = latest.slice();
+  var page   = 0;
+
+  var pages = function () { return Math.max(1, Math.ceil(order.length / PER)); };
+
+  var draw = function () {
+    var start = page * PER;
+    var slice = order.slice(start, start + PER);
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < slice.length; i++) frag.appendChild(slice[i]);
+    list.textContent = '';
+    list.appendChild(frag);
+
+    pager.hidden = pages() < 2;
+    range.textContent = (start + 1) + '\u2013' + (start + slice.length) +
+                        ' of ' + order.length;
+    pager.querySelector('[data-page="prev"]').disabled = page === 0;
+    pager.querySelector('[data-page="next"]').disabled = page >= pages() - 1;
+  };
+
+  bar.addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+    var how = b.getAttribute('data-sort');
+
+    if (how === 'oldest') {
+      order = latest.slice().reverse();
+    } else if (how === 'random') {
+      /* The shuffle takes the whole vocabulary, not the page on screen. */
+      order = latest.slice();
+      for (var i = order.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = order[i]; order[i] = order[j]; order[j] = t;
+      }
+    } else {
+      order = latest.slice();
+    }
+
+    page = 0;
+    draw();
+
+    var all = bar.querySelectorAll('button');
+    for (var k = 0; k < all.length; k++) {
+      all[k].setAttribute('aria-pressed', all[k] === b);
+    }
+  });
+
+  pager.addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b || b.disabled) return;
+    page += (b.getAttribute('data-page') === 'next') ? 1 : -1;
+    if (page < 0) page = 0;
+    if (page > pages() - 1) page = pages() - 1;
+    draw();
+    list.scrollIntoView({ block: 'start' });
+  });
+
+  draw();
+})();
+</script>
+{{ end }}
