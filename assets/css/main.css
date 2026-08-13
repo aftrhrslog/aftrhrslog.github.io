@@ -1247,8 +1247,11 @@ code, mark { border-radius: 0; }
   text-decoration: none;
   white-space: nowrap;
 }
-.vocab-src::before { content: "— "; }
 .vocab-src:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+/* One dash for the line, a middle dot between notes when a sentence turns up
+   in more than one of them. */
+.vocab-srcs::before { content: "— "; color: var(--ink-meta); font-family: var(--font-mono); font-size: 12.5px; }
+.vocab-srcs a + a::before { content: " · "; color: var(--ink-meta); }
 
 /* Fifty to a page.  The pager is drawn by the browser rather than by Hugo,
    so it is buttons where the note list has links; the row itself borrows
