@@ -18,7 +18,7 @@ disableKinds = ['rss']
   wordmark = "AftrHrs"
   tagline = "A Journey of Self-Discovery"
   tagOrder = ["Thoughts", "Purchases", "Research", "Leisure", "Misc"]
-  quizMinimum = 50
+  quizMinimum = 20
 
 [[menu.main]]
   name = 'Notes'
