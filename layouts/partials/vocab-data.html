@@ -1,0 +1,92 @@
+{{/* Every <mark> in every note, gathered once and handed to whoever asks:
+     the Vocab list and the quiz both read from here, so the two can never
+     drift apart on what counts as a phrase or where a quote ends.
+
+     Returns a slice, newest note first, one entry per mark:
+
+       text   the phrase as written
+       key    lowercased, for folding repeats together
+       sent   the sentence it sat in, that one mark still wrapped
+       label  the note's title, or its date when it has none
+       url    a link straight to the mark — see single.html
+
+     A mark whose own text ends in a full stop swallows the sentence break,
+     so the quote is cut off right after it.  Where one sentence holds
+     several marks only the one being listed keeps its highlight. */}}
+
+{{- $sentRE := `[^.!?\n]*<mark[^>]*>.*?</mark>[^.!?\n]*[.!?]?` -}}
+{{- $openRE := `<mark[^>]*>` -}}
+
+{{- $all := slice -}}
+{{- range where site.RegularPages "Section" "notes" -}}
+  {{- $p := . -}}
+  {{- $label := $p.Title -}}
+  {{- if not $label }}{{ $label = $p.Date.Format "2006-01-02" }}{{ end -}}
+
+  {{/* The anchors are only trustworthy when the sentence pass has seen every
+       mark on the page; a mark split across two lines would slip past it and
+       shift every number after itself.  If the counts disagree the links
+       still work, they just land at the top of the note. */}}
+  {{- $sents := findRE $sentRE $p.RawContent -}}
+  {{- $seen := 0 -}}
+  {{- range $sents }}{{ $seen = add $seen (len (findRE $openRE .)) }}{{ end -}}
+  {{- $anchored := eq $seen (len (findRE $openRE $p.RawContent)) -}}
+
+  {{- $n := 0 -}}
+  {{- range $sents -}}
+    {{/* Markdown out, placeholders in, so the highlight survives plainify.
+         The \s* on either side moves any padding the mark was written with
+         outside the highlight. */}}
+    {{- $norm := .
+         | replaceRE `<mark[^>]*>\s*` "@@M@@"
+         | replaceRE `\s*</mark>` "@@E@@"
+         | plainify
+         | replaceRE `\[([^\]]*)\]\([^)]*\)` "$1"
+         | replaceRE "[*_`~]" ""
+         | replaceRE `^[\s\->#|]+` ""
+         | replaceRE `\s+` " "
+         | strings.TrimSpace -}}
+    {{- $chunks := split $norm "@@M@@" -}}
+    {{- $count := sub (len $chunks) 1 -}}
+
+    {{- if gt $count 0 -}}
+      {{- range $i := seq 1 $count -}}
+        {{- $n = add $n 1 -}}
+        {{- $term := index (split (index $chunks $i) "@@E@@") 0 -}}
+        {{- $stop := or (hasSuffix $term ".") (or (hasSuffix $term "!") (hasSuffix $term "?")) -}}
+
+        {{- $out := "" -}}
+        {{- range $j, $c := $chunks -}}
+          {{- if eq $j 0 -}}
+            {{- $out = $c -}}
+          {{- else -}}
+            {{- $bits := split $c "@@E@@" -}}
+            {{- $t := index $bits 0 -}}
+            {{- $rest := "" -}}
+            {{- if gt (len $bits) 1 }}{{ $rest = index $bits 1 }}{{ end -}}
+            {{- if eq $j $i -}}
+              {{- $out = printf "%s<mark>%s</mark>%s" $out $t (cond $stop "" $rest) -}}
+            {{- else if lt $j $i -}}
+              {{- $out = printf "%s%s%s" $out $t $rest -}}
+            {{- else if not $stop -}}
+              {{- $out = printf "%s%s%s" $out $t $rest -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+
+        {{- with strings.TrimSpace $term -}}
+          {{- $url := $p.RelPermalink -}}
+          {{- if $anchored }}{{ $url = printf "%s#m%d" $p.RelPermalink $n }}{{ end -}}
+          {{- $all = $all | append (dict
+              "text"  .
+              "key"   (lower .)
+              "sent"  (strings.TrimSpace $out)
+              "label" $label
+              "url"   $url) -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return $all -}}
