@@ -18,7 +18,7 @@ disableKinds = ['rss']
   wordmark = "AftrHrs"
   tagline = "A Journey of Self-Discovery"
   tagOrder = ["Thoughts", "Purchases", "Research", "Leisure", "Misc"]
-  quizMinimum = 20
+  quizMinimum = 50
 
 [[menu.main]]
   name = 'Notes'
@@ -26,14 +26,19 @@ disableKinds = ['rss']
   weight = 1
 
 [[menu.main]]
+  name = 'Vocab'
+  url = '/vocab/'
+  weight = 2
+
+[[menu.main]]
   name = 'About'
   url = '/about/'
-  weight = 2
+  weight = 3
 
 [[menu.main]]
   name = 'Search'
   url = '/search/'
-  weight = 3
+  weight = 4
 
 [markup]
   [markup.goldmark.renderer]
