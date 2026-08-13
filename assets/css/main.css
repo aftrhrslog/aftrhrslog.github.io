@@ -7,14 +7,12 @@
   --art-w: 1672;
   --art-h: 941;
 
-  --sky:          #4AA8E8;
   --accent:       #1F6FA8;
   --accent-hover: #3FA6E4;
   --mint:         #E9F3EE;
   --canvas:       #D6D0C4;
   --canvas-top:   #CCC5B7;
   --mint-deep:    #D9E9E1;
-  --cream:        #F7EEDF;
   --ink:          #232A2C;
   --ink-soft:     #5C686A;
   --rule:         #C9DCD3;
@@ -48,7 +46,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-::selection { background: #BFDDF2; color: #123043; }
+::selection { background: #EDE2C9; color: #2E2A20; }
 
 a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
 a:hover { color: var(--accent-hover); }
@@ -372,13 +370,12 @@ html[data-time="night"] .cat img {
    at the join.  Each value is the mean of that artwork's own last four rows,
    measured rather than picked; the day figure is left exactly as it was.
    Nothing past the first stop moves: the wood, the paper and the mint belong
-   to the page, and the page does not change with the hour. */
+   to the page, and the page does not change with the hour.  The gradient is
+   further down, in the pass that squares the page off; declaring it here as
+   well only meant writing it twice and having the second win. */
 .desk-fade {
   height: 60px;
   margin-top: -1px;
-  background: linear-gradient(to bottom,
-              var(--desk-edge, #2C241F) 0%, #7A6247 14%, #CDBC9C 32%, var(--cream) 55%,
-              #F0EFE6 78%, var(--mint) 100%);
 }
 html[data-time="sunset"] { --desk-edge: #211810; }
 html[data-time="night"]  { --desk-edge: #130C02; }
@@ -623,7 +620,7 @@ figcaption { font-family: var(--font-sans); font-size: .84rem; color: var(--ink-
 
 .site-footer {
   background: var(--mint-deep);
-  border-top: 1px solid #C8DED4;
+  border-top: 1px solid var(--rule);
   padding: 26px 22px;
   font-family: var(--font-sans);
   font-size: .84rem;
@@ -663,7 +660,7 @@ html[data-time] .time-switch { display: flex; margin-left: auto; }
   cursor: pointer;
   background: transparent;
   color: #4B5A58;
-  border: 1px solid #C8DED4;
+  border: 1px solid var(--rule);
   border-radius: 0;
 }
 .time-switch button:first-child { margin-left: 0; border-radius: 3px 0 0 3px; }
@@ -967,7 +964,7 @@ html[data-time] .time-switch { display: flex; margin-left: auto; }
 .search-results .summary { margin: .6em 0 0; color: #3A4446; font-size: 1.02rem; }
 
 mark {
-  background: #CFE6F6;
+  background: #93D9FB;
   color: inherit;
   padding: .05em .12em;
   border-radius: 2px;
@@ -1000,7 +997,8 @@ p, li, .summary, .lede { text-wrap: pretty; }
 
 .desk-fade {
   background: linear-gradient(to bottom,
-              #2C241F 0%, #7A6247 15%, #CDBC9C 35%, #F2E7D4 68%, var(--sand) 100%);
+              var(--desk-edge, #2C241F) 0%, #7A6247 15%, #CDBC9C 35%,
+              #F2E7D4 68%, var(--sand) 100%);
 }
 main.page {
   background: linear-gradient(to bottom,
@@ -1141,7 +1139,7 @@ code, mark { border-radius: 0; }
 .search-results li { border-bottom-width: 2px; }
 
 .site-footer {
-  border-top: 2px solid #C8DED4;
+  border-top: 2px solid var(--rule);
   font-family: var(--font-mono);
   font-size: .8rem;
   color: var(--ink-meta);
