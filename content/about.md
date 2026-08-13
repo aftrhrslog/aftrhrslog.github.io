@@ -6,6 +6,11 @@ I'm someone who tends to think a little too much, look things up for no particul
 
 **AftrHrs is where I keep some of that.**
 
+It’s a place to keep track of what I think, what I learn, and the English I pick up along the way. I write in English, highlight words and expressions I want to remember, and review them later in Vocab. (**Write → Mark → Review**)
+
+Over time, I hope this becomes less of a collection of posts and more of a
+record of how my **interests, opinions, and perspective** have changed.
+
 ## What I Do
 
 I work in **medicine**. It's work I care about, but I’ve always been curious about things beyond my work. There has always been something else I wanted to learn, try, or take apart just to see how it works.
@@ -48,9 +53,4 @@ a detour.
 - Got really into **watches** a few years ago. A few luxury pieces later, the
   obsession quickly faded.
 
-## Behind AftrHrs
 
-This isn't a personal brand or a polished account of who I am.
-
-Over time, I hope this becomes less of a collection of posts and more of a
-record of how my **interests, opinions, and perspective** have changed.
