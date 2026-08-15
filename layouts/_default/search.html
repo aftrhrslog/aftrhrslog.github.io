@@ -55,8 +55,8 @@
     if (at < 0) return mark(text.slice(0, 180), ts) + (text.length > 180 ? '…' : '');
 
     var from = Math.max(0, at - 80), to = Math.min(text.length, at + 120);
-    if (from > 0) from = text.indexOf(' ', from) + 1;
-    if (to < text.length) to = text.lastIndexOf(' ', to);
+    if (from > 0) { var head = text.indexOf(' ', from); from = head < 0 ? 0 : head + 1; }
+    if (to < text.length) { var tail = text.lastIndexOf(' ', to); if (tail > from) to = tail; }
     return (from > 0 ? '…' : '') + mark(text.slice(from, to), ts) +
            (to < text.length ? '…' : '');
   }
