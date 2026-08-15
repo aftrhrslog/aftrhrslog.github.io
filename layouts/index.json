@@ -8,7 +8,8 @@
       "s"    (.Date.Format "2006-01-02")
       "tags" .Params.tags
       "kind" "note"
-      "x"    (.Plain | htmlUnescape | chomp)) -}}
+      "x"    (.Plain | htmlUnescape | chomp)
+      "ko"   (ne (len (findRE "[가-힣]" (print .Title .Plain) 1)) 0)) -}}
 {{- end -}}
 
 {{- with site.GetPage "/now" -}}
@@ -20,7 +21,8 @@
         "s"    (.Date.Format "2006-01-02")
         "tags" slice
         "kind" "now"
-        "x"    (.Plain | htmlUnescape | chomp)) -}}
+        "x"    (.Plain | htmlUnescape | chomp)
+        "ko"   (ne (len (findRE "[가-힣]" .Plain 1)) 0)) -}}
   {{- end -}}
 {{- end -}}
 
