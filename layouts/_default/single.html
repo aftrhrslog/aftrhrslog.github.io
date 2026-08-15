@@ -1,5 +1,5 @@
 {{ define "main" }}
-<article class="note">
+<article class="note"{{ if findRE "[가-힣]" (print .Title .Plain) 1 }} lang="ko"{{ end }}>
   <header class="note-header">
     <h1>{{ .Title }}</h1>
     {{ if ne .Section "" }}
