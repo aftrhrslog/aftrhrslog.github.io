@@ -7,7 +7,7 @@
 {{ with site.GetPage "/now" }}
   {{ with .Pages.ByDate.Reverse }}
     {{ $latest := index . 0 }}
-    <section class="now" aria-labelledby="now-h">
+    <section class="now" aria-labelledby="now-h"{{ if findRE "[가-힣]" $latest.Plain 1 }} lang="ko"{{ end }}>
       <div class="now-head">
         <h2 id="now-h">Now</h2>
         <time datetime="{{ $latest.Date.Format "2006-01-02" }}">{{ $latest.Date.Format "2006-01-02" }}</time>
@@ -39,7 +39,7 @@
         {{ end }}
         {{ if $latest }}
         {{ $shown = $shown | append $latest.RelPermalink }}
-        <li class="note-item">
+        <li class="note-item"{{ if findRE "[가-힣]" (print $latest.Title $latest.Plain) 1 }} lang="ko"{{ end }}>
           <h2><a href="{{ $latest.RelPermalink }}">{{ $latest.Title }}</a></h2>
           <div class="meta">
             {{ partial "tags.html" $latest }}
