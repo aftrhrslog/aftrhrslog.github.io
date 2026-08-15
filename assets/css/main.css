@@ -17,8 +17,7 @@
   --ink-soft:     #5C686A;
   --rule:         #C9DCD3;
 
-  --font-serif: "Newsreader", Georgia, "Apple SD Gothic Neo", "Pretendard",
-                "Noto Sans KR", serif;
+  --font-serif: "Newsreader", "Gowun Batang", Georgia, serif;
   --font-sans:  "Inter", system-ui, -apple-system, "Segoe UI", "Pretendard",
                 "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
   --font-pixel: "Bitcount", "Courier New", monospace;
@@ -1419,3 +1418,20 @@ mark:target { outline: 2px solid var(--accent); outline-offset: 2px; }
 .quiz-locked p:last-child { margin-bottom: 0; }
 .quiz-locked-count { font-family: var(--font-mono); font-size: 1rem; color: var(--ink-meta); }
 .quiz-locked-count strong { font-size: 1.5rem; font-weight: 400; color: var(--ink); }
+
+body { word-break: keep-all; overflow-wrap: break-word; }
+
+[lang="ko"]            { font-size: .94em; }
+[lang="ko"] h1         { font-size: calc(clamp(2rem, 4.4vw, 2.6rem) * .94); }
+[lang="ko"] h2         { font-size: calc(1.6rem * .94); }
+[lang="ko"] h3         { font-size: calc(1.28rem * .94); }
+[lang="ko"] .lede      { font-size: calc(1.28rem * .94); }
+
+.note-item[lang="ko"] h2       { font-size: calc(1.22rem * .94); }
+.note-item[lang="ko"] .summary { font-size: calc(1rem * .94); }
+.now[lang="ko"] li             { font-size: calc(1.06rem * .94); }
+
+@media (max-width: 767px) {
+  .note-item[lang="ko"] h2 { font-size: calc(1.16rem * .94); }
+  .now[lang="ko"] li       { font-size: calc(1.02rem * .94); }
+}
