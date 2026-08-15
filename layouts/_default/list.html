@@ -27,7 +27,7 @@
 
   <ul class="note-list">
     {{ range $paginator.Pages }}
-    <li class="note-item">
+    <li class="note-item"{{ if findRE "[가-힣]" (print .Title .Plain) 1 }} lang="ko"{{ end }}>
       <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
       <div class="meta">
         {{ partial "tags.html" . }}
