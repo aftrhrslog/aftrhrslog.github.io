@@ -84,6 +84,7 @@
 
     hits.forEach(function (h) {
       var d = h.d, li = document.createElement('li');
+      if (d.ko) li.setAttribute('lang', 'ko');
       var badge = d.kind === 'now'
         ? '<span class="tag tag-now">Now</span>'
         : (d.tags || []).map(function (t) {
