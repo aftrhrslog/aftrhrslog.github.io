@@ -1435,3 +1435,5 @@ body { word-break: keep-all; overflow-wrap: break-word; }
   .note-item[lang="ko"] h2 { font-size: calc(1.16rem * .94); }
   .now[lang="ko"] li       { font-size: calc(1.02rem * .94); }
 }
+.search-results li[lang="ko"] h2      { font-size: calc(1.34rem * .94); }
+.search-results li[lang="ko"] .summary { font-size: calc(1rem * .94); }
