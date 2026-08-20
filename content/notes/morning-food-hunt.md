@@ -1,8 +1,8 @@
 ---
-title: A Little Morning Food Hunt: Burger king's New Breakfast Item
+title: "A Little Morning Food Hunt: Burger King's New Breakfast Item"
 date: 2026-08-20T11:30:40+09:00
 tags:
-  - Purchases
+  - Leisure
 ---
 
 It’s been three days since I started my early morning challenge. I’m still adjusting, but I’ve <mark>moved my wake-up time</mark> from around 10 a.m. to 7:30 a.m.
