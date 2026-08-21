@@ -16,7 +16,7 @@ I haven’t changed much else. I still stretch on my yoga mat after waking up, w
 
 But surprisingly, I’ve been <mark>feeling more balanced</mark> since I made this small change.
 
-Starting earlier gives me more <mark>breathing room</mark>. I can finish several things before lunch, so I don’t feel like I’m racing against the clock. More importantly, I feel like I have a little more <mark>mental space</mark>. I can keep some distance from things happening around me instead of reacting to every little thing.
+Starting earlier gives me more <mark>breathing room</mark>. I can finish several things before lunch, so I don’t feel like I’m <mark>racing against the clock</mark>. More importantly, I feel like I have a little more <mark>mental space</mark>. I can keep some distance from things happening around me instead of reacting to every little thing.
 
 That matters to me because I tend to <mark>read too much into</mark> little things, and one thought quickly leads to another. Before I know it, my mind <mark>feels overwhelmed</mark>.
 
