@@ -20,8 +20,10 @@
       from {{ len (where site.RegularPages "Section" "notes") }} notes
     </p>
     <div class="vocab-sort" role="group" aria-label="Order">
-      <button type="button" data-sort="latest" aria-pressed="true">Latest</button>
-      <button type="button" data-sort="oldest" aria-pressed="false">Oldest</button>
+      <button type="button" data-sort="new" aria-pressed="true">New</button>
+      <button type="button" data-sort="old" aria-pressed="false">Old</button>
+      <button type="button" data-sort="az" aria-pressed="false">A&#8594;Z</button>
+      <button type="button" data-sort="za" aria-pressed="false">Z&#8594;A</button>
       <button type="button" data-sort="random" aria-pressed="false">Random</button>
     </div>
   </div>
@@ -94,11 +96,23 @@
   var range = document.getElementById('vocab-range');
   if (!list || !bar || !pager) return;
 
-  /* The build hands the list over newest first, so latest is simply the
-     order it arrived in and oldest is that order reversed. */
-  var latest = Array.prototype.slice.call(list.children);
-  var order  = latest.slice();
-  var page   = 0;
+  /* The build hands the list over newest first, so New is simply the order it
+     arrived in and Old is that order reversed.  The alphabetical order is
+     worked out once, here, rather than on every press.
+
+     localeCompare rather than < : comparing strings by character code puts
+     every capital ahead of every lowercase, which would file "Take pride"
+     before "a downward spiral".  sensitivity base also folds accents, and
+     numeric keeps "item 2" ahead of "item 10". */
+  var byNew = Array.prototype.slice.call(list.children);
+  var byAZ  = byNew.slice().sort(function (a, b) {
+    var ta = a.querySelector('.vocab-term').textContent.trim();
+    var tb = b.querySelector('.vocab-term').textContent.trim();
+    return ta.localeCompare(tb, 'en', { sensitivity: 'base', numeric: true });
+  });
+
+  var order = byNew.slice();
+  var page  = 0;
 
   var pages = function () { return Math.max(1, Math.ceil(order.length / PER)); };
 
@@ -122,17 +136,22 @@
     if (!b) return;
     var how = b.getAttribute('data-sort');
 
-    if (how === 'oldest') {
-      order = latest.slice().reverse();
+    if (how === 'old') {
+      order = byNew.slice().reverse();
+    } else if (how === 'az') {
+      order = byAZ.slice();
+    } else if (how === 'za') {
+      order = byAZ.slice().reverse();
     } else if (how === 'random') {
-      /* The shuffle takes the whole vocabulary, not the page on screen. */
-      order = latest.slice();
+      /* The shuffle takes the whole vocabulary, not the page on screen, and a
+         second press on an already-pressed Random deals again. */
+      order = byNew.slice();
       for (var i = order.length - 1; i > 0; i--) {
         var j = Math.floor(Math.random() * (i + 1));
         var t = order[i]; order[i] = order[j]; order[j] = t;
       }
     } else {
-      order = latest.slice();
+      order = byNew.slice();
     }
 
     page = 0;
