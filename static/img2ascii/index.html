@@ -1,0 +1,1187 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Image To ASCII</title>
+<style>
+:root{
+  --ink:#0f1317; --body:#161c22; --panel:#1b232b; --rule:#2b3641;
+  --type:#c7d1da; --dim:#77848f; --bright:#eef3f7;
+  --mark:#3fb8c8;            /* 인쇄 정합 마크에서 가져온 프로세스 시안 */
+  --paper:#ffffff; --paperink:#111111;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:var(--ink); color:var(--type);
+  font:400 13px/1.5 ui-monospace,Menlo,Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",monospace;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{display:grid;grid-template-columns:330px 1fr;height:100%}
+@media(max-width:900px){ .wrap{grid-template-columns:1fr;height:auto} }
+
+/* ── 좌측 계기판 ─────────────────────────────────────────── */
+.rail{
+  background:var(--body); border-right:1px solid var(--rule);
+  overflow-y:auto; padding:0 0 40px;
+}
+.brand{
+  padding:20px 18px 16px; border-bottom:1px solid var(--rule);
+  position:sticky; top:0; background:var(--body); z-index:5;
+}
+.brand h1{
+  margin:0; font-size:15px; font-weight:700; letter-spacing:.22em;
+  text-transform:uppercase; color:var(--bright);
+}
+.brand p{margin:6px 0 0;font-size:11px;color:var(--dim);letter-spacing:.02em}
+
+.grp{border-bottom:1px solid var(--rule);padding:16px 18px}
+.grp>h2{
+  margin:0 0 12px; font-size:10px; font-weight:700; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--dim);
+}
+.row{margin-bottom:13px}
+.row:last-child{margin-bottom:0}
+.lab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.lab b{font-weight:400;font-size:12px;color:var(--type)}
+.lab i{font-style:normal;font-size:11px;color:var(--mark);font-weight:500}
+.hint{font-size:10.5px;color:var(--dim);margin-top:4px;line-height:1.45}
+
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:18px;
+  background:transparent;cursor:pointer;display:block;
+}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--rule)}
+input[type=range]::-moz-range-track{height:2px;background:var(--rule)}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:12px;height:12px;margin-top:-5px;
+  background:var(--mark);border:0;border-radius:0;transform:rotate(45deg);
+}
+input[type=range]::-moz-range-thumb{
+  width:12px;height:12px;background:var(--mark);border:0;border-radius:0;
+}
+input[type=range]:focus-visible{outline:1px solid var(--mark);outline-offset:3px}
+
+select,button,.filebtn{
+  font:inherit;font-size:12px;color:var(--type);background:var(--panel);
+  border:1px solid var(--rule);border-radius:0;padding:7px 9px;width:100%;
+  cursor:pointer;
+}
+select:focus-visible,button:focus-visible,.filebtn:focus-within{outline:1px solid var(--mark);outline-offset:2px}
+button:hover,.filebtn:hover{border-color:var(--mark);color:var(--bright)}
+.filebtn{display:block;text-align:center}
+.filebtn input{position:absolute;width:0;height:0;opacity:0}
+
+.chk{display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer}
+.chk input{accent-color:var(--mark);width:14px;height:14px}
+
+/* ── 우측 결과 화면 ─────────────────────────────────────── */
+.stage{
+  padding:22px; overflow:auto; display:flex; flex-direction:column; gap:14px;
+  background:
+    repeating-linear-gradient(0deg,transparent 0 39px,#ffffff06 39px 40px),
+    repeating-linear-gradient(90deg,transparent 0 39px,#ffffff06 39px 40px),
+    var(--ink);
+}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:11px;color:var(--dim)}
+.bar .tag{
+  border:1px solid var(--rule);padding:3px 8px;letter-spacing:.08em;
+  text-transform:uppercase;font-size:10px;
+}
+.bar .tag b{color:var(--bright);font-weight:500}
+.bar .tag.key{border-color:var(--mark)}
+.bar .tag.key b{color:var(--mark)}
+.bar .sp{flex:1}
+.bar button{width:auto;padding:5px 12px;font-size:11px}
+
+.plate{
+  background:var(--paper); padding:20px; align-self:flex-start;
+  box-shadow:0 1px 0 #ffffff14, 0 18px 50px #0008;
+  max-width:100%; overflow:auto;
+}
+pre#out{
+  margin:0; white-space:pre; letter-spacing:0;
+  font-variant-ligatures:none; font-feature-settings:'liga' 0,'calt' 0;
+  color:var(--paperink);
+}
+.empty{
+  color:var(--dim);font-size:12px;line-height:1.7;padding:36px 4px;
+}
+.empty b{display:block;color:var(--bright);font-size:13px;margin-bottom:6px;letter-spacing:.06em}
+
+/* #crop 의 큰 스프레드 그림자가 자르기 바깥을 어둡게 덮는다.  overflow 를
+   잠그지 않으면 그 그림자가 썸네일을 넘어 계기판 전체까지 덮는다. */
+#cropwrap{position:relative;line-height:0;border:1px solid var(--rule);
+  margin-top:10px;overflow:hidden}
+#cropcv{width:100%;height:auto;display:block;filter:grayscale(1) contrast(.9) brightness(.85)}
+#crop{position:absolute;border:1px solid var(--mark);box-shadow:0 0 0 600px #0f1317aa}
+/* 드래그로 자르기.  touch-action 을 잠그지 않으면 안드로이드·iOS 에서
+   박스를 끄는 대신 페이지가 스크롤되고, callout 을 끄지 않으면 iOS 에서
+   길게 누를 때 이미지 저장 메뉴가 뜬다. */
+#cropwrap{touch-action:none;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;cursor:crosshair}
+#crop{cursor:move}
+.hdl{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px}  /* 손가락이 잡을 최소 크기 */
+.hdl::after{content:"";position:absolute;left:8px;top:8px;width:10px;height:10px;
+  background:var(--mark);box-shadow:0 0 0 1px var(--ink)}
+.hdl[data-h="nw"]{left:0;top:0;cursor:nwse-resize}
+.hdl[data-h="n" ]{left:50%;top:0;cursor:ns-resize}
+.hdl[data-h="ne"]{left:100%;top:0;cursor:nesw-resize}
+.hdl[data-h="e" ]{left:100%;top:50%;cursor:ew-resize}
+.hdl[data-h="se"]{left:100%;top:100%;cursor:nwse-resize}
+.hdl[data-h="s" ]{left:50%;top:100%;cursor:ns-resize}
+.hdl[data-h="sw"]{left:0;top:100%;cursor:nesw-resize}
+.hdl[data-h="w" ]{left:0;top:50%;cursor:ew-resize}
+.busy{opacity:.45;transition:opacity .12s}
+
+/* ── 낙하 애니메이션 ─────────────────────────────────────── */
+pre#out i{font-style:normal}
+pre#out i.h{color:var(--dp-head);text-shadow:0 0 .45em var(--dp-head)}
+pre#out i.t1{color:var(--dp-head)}
+pre#out i.t2{opacity:.66}
+pre#out i.t3{opacity:.34}
+.swatches{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.sw{display:block}
+.sw span{display:block;font-size:10px;color:var(--dim);margin-bottom:4px;letter-spacing:.04em}
+.sw input[type=color]{
+  -webkit-appearance:none;appearance:none;width:100%;height:26px;padding:0;
+  border:1px solid var(--rule);background:var(--panel);cursor:pointer}
+.sw input[type=color]::-webkit-color-swatch-wrapper{padding:2px}
+.sw input[type=color]::-webkit-color-swatch{border:0}
+.sw input[type=color]::-moz-color-swatch{border:0}
+.grp.off .row.animonly{opacity:.35;pointer-events:none}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ─────────────── 계기판 ─────────────── -->
+<aside class="rail">
+  <div class="brand">
+    <h1>Image To ASCII</h1>
+    <p>이미지 변환은 로컬 기기에서 처리됩니다.<br>이미지를 사용자의 기기 외로 이동하지 않습니다.</p>
+  </div>
+
+  <div class="grp">
+    <h2>사진</h2>
+    <label class="filebtn">사진 고르기
+      <input type="file" id="file" accept="image/*">
+    </label>
+    <div class="hint" id="fileinfo">아직 없음</div>
+    <div id="cropwrap" hidden><canvas id="cropcv"></canvas><div id="crop">
+      <div class="hdl" data-h="nw"></div><div class="hdl" data-h="n"></div>
+      <div class="hdl" data-h="ne"></div><div class="hdl" data-h="e"></div>
+      <div class="hdl" data-h="se"></div><div class="hdl" data-h="s"></div>
+      <div class="hdl" data-h="sw"></div><div class="hdl" data-h="w"></div>
+    </div></div>
+    <div class="row" style="margin-top:10px" id="cropbox" hidden>
+      <div class="lab"><b>자를 영역</b><i id="v_crop">—</i></div>
+      <select id="ratio">
+        <option value="free">비율 자유</option>
+        <option value="1:1">정사각형 1:1</option>
+        <option value="3:4">세로 3:4</option>
+        <option value="2:3">세로 2:3</option>
+        <option value="9:16">세로 9:16</option>
+        <option value="4:3">가로 4:3</option>
+        <option value="3:2">가로 3:2</option>
+        <option value="16:9">가로 16:9</option>
+      </select>
+      <div class="hint">박스 안을 끌면 이동, 모서리·변의 손잡이를 끌면 크기가 바뀝니다. 빈 곳을 끌면 새로 그립니다.</div>
+    </div>
+  </div>
+
+  <div class="grp">
+    <h2>격자</h2>
+    <div class="row">
+      <div class="lab"><b>가로 칸 수</b><i id="v_pix">56</i></div>
+      <input type="range" id="pix" min="16" max="180" step="2" value="56">
+      <div class="hint" id="pixhint"></div>
+    </div>
+    <div class="row" id="row_wstruct">
+      <div class="lab"><b>모양 가중치</b><i id="v_w">0.30</i></div>
+      <input type="range" id="wstruct" min="0" max="60" value="30">
+      <div class="hint">0이면 밝기만. 0.6을 넘기면 모양을 과하게 따라가 계조가 무너집니다.</div>
+    </div>
+    <div class="row">
+      <div class="lab"><b>칸 세로비</b><i id="v_asp">1.15</i></div>
+      <input type="range" id="aspect" min="90" max="140" value="115">
+      <div class="hint">1.00은 정사각형이지만 점이 굵어집니다. 1.15에서 점 주위에 여백이 생깁니다.</div>
+    </div>
+  </div>
+
+  <div class="grp">
+    <h2>사진 다듬기</h2>
+    <div class="row">
+      <div class="lab"><b>국소 대비</b><i id="v_clip">0.030</i></div>
+      <input type="range" id="clip" min="0" max="60" value="30">
+      <div class="hint">평평한 조명일수록 올립니다. 증명사진 0.03, 야외 0.01, 0이면 끕니다.</div>
+    </div>
+    <div class="row">
+      <div class="lab"><b>선명하게</b><i id="v_sharp">140%</i></div>
+      <input type="range" id="sharp" min="0" max="220" step="10" value="140">
+      <div class="hint">안경테나 눈매처럼 가는 선을 살립니다.</div>
+    </div>
+    <div class="row">
+      <div class="lab"><b>배경 지우기</b><i id="v_bg">42%</i></div>
+      <input type="range" id="bgsens" min="0" max="70" value="42">
+      <div class="hint">테두리와 이어진 조용한 영역만 배경으로 봅니다. 0이면 끕니다.</div>
+    </div>
+    <div class="row">
+      <div class="lab"><b>배경 채우기</b></div>
+      <select id="bgfill">
+        <option value="solid">점으로 꽉 채움 (권장)</option>
+        <option value="sparse">성긴 점</option>
+        <option value="none">비움</option>
+      </select>
+      <div class="hint">꽉 채우면 모든 줄 길이가 같아져 어디에 붙여도 격자가 안 깨집니다.</div>
+    </div>
+    <div class="row">
+      <label class="chk"><input type="checkbox" id="invert" checked> 밝은 배경에 어두운 글자</label>
+      <div class="hint">켜면 원본의 <b style="color:var(--type)">어두운</b> 부분이 빽빽한 글자로, 밝은 부분이 성긴 글자로 찍힙니다. 끄면 반대가 됩니다.</div>
+    </div>
+  </div>
+
+  <div class="grp" id="animgrp">
+    <h2>낙하 애니메이션</h2>
+    <div class="row">
+      <label class="chk"><input type="checkbox" id="anim"> 켜기</label>
+      <div class="hint">글자들이 위에서 떨어지며 그림이 맞춰집니다. 끄면 정지된 그림만 남습니다.</div>
+    </div>
+    <div class="row">
+      <div class="lab"><b>색 프리셋</b></div>
+      <select id="pal"></select>
+      <div class="swatches" style="margin-top:8px">
+        <label class="sw"><span>배경</span><input type="color" id="c_bg"   value="#FFFFFF"></label>
+        <label class="sw"><span>글자</span><input type="color" id="c_ink"  value="#111111"></label>
+        <label class="sw"><span>낙하</span><input type="color" id="c_head" value="#1F6FA8"></label>
+      </div>
+      <div class="hint">셋 중 하나라도 직접 바꾸면 프리셋이 &ldquo;직접&rdquo;으로 바뀝니다. 배경과 글자는 애니메이션을 꺼도 적용됩니다.</div>
+    </div>
+    <div class="row animonly">
+      <div class="lab"><b>떨어지는 글자</b></div>
+      <select id="glyph">
+        <option value="own">그림에 쓰인 문자</option>
+        <option value="ramp">ASCII 램프</option>
+      </select>
+      <div class="hint">그림 문자를 쓰면 꼬리의 굵기가 그림과 같아집니다.</div>
+    </div>
+    <div class="row animonly">
+      <div class="lab"><b>낙하 시간</b><i id="v_fall">3.0s</i></div>
+      <input type="range" id="fall" min="600" max="8000" step="100" value="3000">
+    </div>
+    <div class="row animonly">
+      <div class="lab"><b>정지 시간</b><i id="v_pause">3.0s</i></div>
+      <input type="range" id="pause" min="0" max="10000" step="250" value="3000">
+      <div class="hint">0으로 두면 쉬지 않고 이어서 다시 떨어집니다.</div>
+    </div>
+    <div class="row animonly">
+      <div class="lab"><b>꼬리 길이</b><i id="v_trail">12행</i></div>
+      <input type="range" id="trail" min="2" max="30" value="12">
+    </div>
+    <div class="row animonly">
+      <div class="lab"><b>초당 프레임</b><i id="v_fps">24</i></div>
+      <input type="range" id="fps" min="8" max="30" value="24">
+      <div class="hint">올려도 눈에 띄는 차이는 적고 배터리만 씁니다. 24가 기본입니다. GIF 는 이 값과 무관하게 15로 고정입니다.</div>
+    </div>
+  </div>
+
+  <div class="grp">
+    <h2>보기</h2>
+    <div class="row">
+      <div class="lab"><b>글자 크기</b><i id="v_fs">10px</i></div>
+      <input type="range" id="fsize" min="4" max="22" value="10">
+    </div>
+  </div>
+</aside>
+
+<!-- ─────────────── 결과 화면 ─────────────── -->
+<main class="stage">
+  <div class="bar">
+    <span class="tag">격자 <b id="t_grid">—</b></span>
+    <span class="tag">문자 <b id="t_chars">—</b></span>
+    <span class="tag">용량 <b id="t_size">—</b></span>
+    <span class="tag">칸당 원본 <b id="t_src">—</b></span>
+    <span class="tag key">SSIM <b id="t_ssim">—</b></span>
+    <span class="sp"></span>
+    <button id="b_copy">HTML 조각 복사</button>
+    <button id="b_txt">.txt 내려받기</button>
+    <button id="b_html">.html 내려받기</button>
+    <button id="b_gif">.gif 내려받기</button>
+  </div>
+  <div class="plate" id="plate">
+    <div class="empty" id="empty"><b>사진을 고르면 여기에 나옵니다</b>
+      파일은 어디로도 올라가지 않습니다. 브라우저 안에서만 계산됩니다.<br>
+      JPEG · PNG · WebP · GIF · AVIF 모두 됩니다. 아이폰 HEIC만 브라우저가 못 읽습니다.</div>
+    <pre id="out" hidden></pre>
+  </div>
+</main>
+</div>
+
+<script>
+"use strict";
+/* =========================================================================
+   Image To ASCII — 이미지를 글자 격자로
+   파이프라인:  자르기 → 확대 → CLAHE → 언샤프 → 격자 축소
+                → 잉크량·모양 매칭 → 배경 억제
+   모든 처리가 이 파일 안에서 끝난다.  네트워크 요청이 하나도 없다.
+   ========================================================================= */
+
+const $ = id => document.getElementById(id);
+/* 기기에 이미 들어 있는 고정폭 글꼴만 쓴다.  내려받은 파일이 네트워크 없이
+   열려야 하고, 미리보기와 같은 글꼴로 그려져야 하기 때문이다.
+   ui-monospace 는 애플의 SF Mono, Consolas 는 윈도우 기본, 뒤의 둘은 리눅스.
+   맨 끝의 monospace 는 어떤 경우에도 비례폭으로 떨어지지 않게 하는 안전장치. */
+const FONT = 'ui-monospace,Menlo,Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",monospace';
+const BANK_PX = 13;          // 글리프 뱅크를 만들 때 쓰는 글자 크기
+const UPSCALE_TARGET = 900;  // 전처리용 작업 해상도(긴 변). 작은 사진을 키운다
+
+/* ASCII 32~126 전체, 한 칸에 한 글자 */
+const ASCII95 = Array.from({length:95},(_,i)=>String.fromCharCode(32+i));
+
+/* 한 칸에 한 글자.  per 는 buildBank 와 격자 계산이 함께 쓰는 값이라 남겨 둔다. */
+const TOKEN_SETS = { ascii95:{toks:ASCII95, per:1} };
+
+let bitmap=null, lines=null, timer=null, bankCache={};
+
+/* ── 신호 처리 유틸 ────────────────────────────────────── */
+
+// 면적 평균 리샘플. 캔버스 축소는 브라우저마다 보간이 달라 직접 계산한다.
+function areaResize(src,sw,sh,dw,dh){
+  const tmp=new Float32Array(dw*sh);
+  for(let y=0;y<sh;y++) for(let x=0;x<dw;x++){
+    const a=x*sw/dw, b=(x+1)*sw/dw; let s=0,n=0;
+    for(let i=Math.floor(a);i<Math.min(sw,Math.ceil(b));i++){
+      const w=Math.min(b,i+1)-Math.max(a,i); s+=src[y*sw+i]*w; n+=w;
+    }
+    tmp[y*dw+x]=n?s/n:0;
+  }
+  const out=new Float32Array(dw*dh);
+  for(let x=0;x<dw;x++) for(let y=0;y<dh;y++){
+    const a=y*sh/dh, b=(y+1)*sh/dh; let s=0,n=0;
+    for(let j=Math.floor(a);j<Math.min(sh,Math.ceil(b));j++){
+      const w=Math.min(b,j+1)-Math.max(a,j); s+=tmp[j*dw+x]*w; n+=w;
+    }
+    out[y*dw+x]=n?s/n:0;
+  }
+  return out;
+}
+
+// 박스 블러 3회 = 가우시안 근사
+function blur(src,w,h,r){
+  if(r<1) return src.slice();
+  let a=src.slice(), b=new Float32Array(w*h);
+  for(let p=0;p<3;p++){
+    for(let y=0;y<h;y++){let s=0;
+      for(let i=-r;i<=r;i++) s+=a[y*w+Math.min(w-1,Math.max(0,i))];
+      for(let x=0;x<w;x++){ b[y*w+x]=s/(2*r+1);
+        s+=a[y*w+Math.min(w-1,x+r+1)]-a[y*w+Math.min(w-1,Math.max(0,x-r))]; }
+    }
+    for(let x=0;x<w;x++){let s=0;
+      for(let j=-r;j<=r;j++) s+=b[Math.min(h-1,Math.max(0,j))*w+x];
+      for(let y=0;y<h;y++){ a[y*w+x]=s/(2*r+1);
+        s+=b[Math.min(h-1,y+r+1)*w+x]-b[Math.min(h-1,Math.max(0,y-r))*w+x]; }
+    }
+  }
+  return a;
+}
+
+// CLAHE: 타일마다 히스토그램을 clip 으로 자르고 잘린 양을 균등 재분배한 뒤,
+//        타일 CDF 를 이중선형 보간해 적용한다. 타일 경계 티가 안 나는 이유.
+function clahe(img,w,h,tiles,clip){
+  if(clip<=0) return img;
+  const NB=256, ty=Math.ceil(h/tiles), tx=Math.ceil(w/tiles);
+  const maps=[], limit=Math.max(1,clip*ty*tx);
+  for(let i=0;i<tiles;i++) for(let j=0;j<tiles;j++){
+    const hist=new Float32Array(NB);
+    for(let y=i*ty;y<Math.min(h,(i+1)*ty);y++)
+      for(let x=j*tx;x<Math.min(w,(j+1)*tx);x++)
+        hist[Math.min(NB-1,Math.max(0,img[y*w+x]*(NB-1)|0))]++;
+    let ex=0; for(let k=0;k<NB;k++) if(hist[k]>limit){ex+=hist[k]-limit;hist[k]=limit;}
+    const add=ex/NB, cdf=new Float32Array(NB); let acc=0;
+    for(let k=0;k<NB;k++){acc+=hist[k]+add;cdf[k]=acc;}
+    const lo=cdf[0], rng=Math.max(cdf[NB-1]-lo,1e-8);
+    for(let k=0;k<NB;k++) cdf[k]=(cdf[k]-lo)/rng;
+    maps[i*tiles+j]=cdf;
+  }
+  const out=new Float32Array(w*h);
+  for(let y=0;y<h;y++){
+    const fy=(y-ty/2)/ty, y0=Math.min(tiles-1,Math.max(0,Math.floor(fy)));
+    const y1=Math.min(tiles-1,y0+1), wy=Math.min(1,Math.max(0,fy-y0));
+    for(let x=0;x<w;x++){
+      const fx=(x-tx/2)/tx, x0=Math.min(tiles-1,Math.max(0,Math.floor(fx)));
+      const x1=Math.min(tiles-1,x0+1), wx=Math.min(1,Math.max(0,fx-x0));
+      const q=Math.min(NB-1,Math.max(0,img[y*w+x]*(NB-1)|0));
+      out[y*w+x]=(1-wy)*(1-wx)*maps[y0*tiles+x0][q]+(1-wy)*wx*maps[y0*tiles+x1][q]
+                +wy*(1-wx)*maps[y1*tiles+x0][q]+wy*wx*maps[y1*tiles+x1][q];
+    }
+  }
+  return out;
+}
+
+function unsharp(img,w,h,percent){
+  if(percent<=0) return img;
+  const b=blur(img,w,h,4), k=percent/100, out=new Float32Array(w*h);
+  for(let i=0;i<w*h;i++) out[i]=Math.min(1,Math.max(0,img[i]+k*(img[i]-b[i])));
+  return out;
+}
+
+function pct(arr,p){
+  const s=Float32Array.from(arr).sort();
+  return s[Math.min(s.length-1,Math.max(0,Math.round((s.length-1)*p/100)))];
+}
+
+// 배경: 국소 표준편차가 낮고 '테두리와 이어진' 덩어리만.
+// 테두리 조건이 없으면 평평한 이마나 뺨까지 배경으로 지워진다.
+function bgMask(cell,cols,rows,quiet){
+  const m=new Uint8Array(cols*rows);
+  if(quiet<=0) return m;
+  const act=new Float32Array(cols*rows);
+  for(let y=0;y<rows;y++) for(let x=0;x<cols;x++){
+    let s=0,q=0,n=0;
+    for(let j=-1;j<=1;j++) for(let i=-1;i<=1;i++){
+      const yy=Math.min(rows-1,Math.max(0,y+j)), xx=Math.min(cols-1,Math.max(0,x+i));
+      const v=cell[yy*cols+xx]; s+=v; q+=v*v; n++;
+    }
+    act[y*cols+x]=Math.sqrt(Math.max(q/n-(s/n)*(s/n),0));
+  }
+  const thr=pct(act,quiet);
+  const quietMask=i=>act[i]<thr;
+  const st=[];
+  for(let x=0;x<cols;x++){st.push(x,(rows-1)*cols+x);}
+  for(let y=0;y<rows;y++){st.push(y*cols,y*cols+cols-1);}
+  while(st.length){
+    const i=st.pop();
+    if(m[i]||!quietMask(i)) continue;
+    m[i]=1;
+    const x=i%cols,y=(i/cols)|0;
+    if(x>0)st.push(i-1); if(x<cols-1)st.push(i+1);
+    if(y>0)st.push(i-cols); if(y<rows-1)st.push(i+cols);
+  }
+  return m;
+}
+
+/* ── SSIM (7x7 균일 창, 데이터 범위 1) ────────────────────
+   원본 칸 밝기와 '실제로 찍힌 글자의 잉크량'을 격자 해상도에서 비교한다.
+   글리프 텍스처가 아니라 멀리서 봤을 때 톤이 얼마나 맞는지를 재는 값. */
+function ssim(a,b,w,h){
+  const win=Math.max(3,Math.min(7,w,h)), r=(win/2)|0;
+  const C1=0.0001, C2=0.0009;
+  let sum=0,cnt=0;
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+    let ma=0,mb=0,n=0;
+    for(let j=-r;j<=r;j++) for(let i=-r;i<=r;i++){
+      const yy=Math.min(h-1,Math.max(0,y+j)), xx=Math.min(w-1,Math.max(0,x+i));
+      ma+=a[yy*w+xx]; mb+=b[yy*w+xx]; n++; }
+    ma/=n; mb/=n;
+    let va=0,vb=0,cov=0;
+    for(let j=-r;j<=r;j++) for(let i=-r;i<=r;i++){
+      const yy=Math.min(h-1,Math.max(0,y+j)), xx=Math.min(w-1,Math.max(0,x+i));
+      const da=a[yy*w+xx]-ma, db=b[yy*w+xx]-mb;
+      va+=da*da; vb+=db*db; cov+=da*db; }
+    const d=Math.max(n-1,1); va/=d; vb/=d; cov/=d;
+    sum+=((2*ma*mb+C1)*(2*cov+C2))/((ma*ma+mb*mb+C1)*(va+vb+C2));
+    cnt++;
+  }
+  return cnt?sum/cnt:NaN;
+}
+// 잉크량 눈금이 서로 다르므로 b 를 a 의 평균/표준편차에 맞춘 뒤 비교한다
+function matchScale(b,a){
+  const st=v=>{let m=0;for(let i=0;i<v.length;i++)m+=v[i];m/=v.length;
+    let q=0;for(let i=0;i<v.length;i++)q+=(v[i]-m)*(v[i]-m);
+    return [m,Math.sqrt(q/v.length)||1e-8];};
+  const [ma,sa]=st(a),[mb,sb]=st(b), o=new Float32Array(b.length);
+  for(let i=0;i<b.length;i++) o[i]=Math.min(1,Math.max(0,(b[i]-mb)/sb*sa+ma));
+  return o;
+}
+
+/* ── 글리프 뱅크: 기호를 실제로 그려서 밝기와 모양을 잰다 ── */
+function buildBank(tokens,per,aspect){
+  const key=tokens.join("\u0001")+"|"+per+"|"+aspect;
+  if(bankCache[key]) return bankCache[key];
+  const cv=document.createElement("canvas"), c=cv.getContext("2d",{willReadFrequently:true});
+  c.font=BANK_PX+'px '+FONT;
+  const cw=Math.max(4,Math.round(c.measureText("M").width));
+  const cellH=Math.max(4,Math.round(cw*2*aspect)), tw=cw*per;
+  const mt=c.measureText("Mg");
+  const asc=mt.fontBoundingBoxAscent||BANK_PX*0.9, desc=mt.fontBoundingBoxDescent||BANK_PX*0.25;
+  const off=Math.round((cellH-(asc+desc))/2);
+  // 글자가 셀 밖으로 넘칠 수 있다(CSS 도 동일). 모양 비교는 셀 안쪽만 쓴다.
+  const b0=Math.max(0,off), b1=Math.min(cellH,off+asc+desc), bh=Math.max(1,Math.round(b1-b0));
+  cv.width=tw; cv.height=cellH;
+  const cov=[], feat=[];
+  for(const t of tokens){
+    c.clearRect(0,0,tw,cellH);
+    c.fillStyle="#000"; c.fillRect(0,0,tw,cellH);
+    c.fillStyle="#fff"; c.font=BANK_PX+'px '+FONT; c.textBaseline="alphabetic";
+    for(let i=0;i<per;i++) if(t[i]&&t[i]!==" ") c.fillText(t[i],i*cw,off+asc);
+    const d=c.getImageData(0,0,tw,cellH).data;
+    const full=new Float32Array(tw*cellH);
+    for(let i=0;i<tw*cellH;i++) full[i]=d[i*4]/255;
+    const sm=blur(full,tw,cellH,1);
+    let s=0; for(let i=0;i<sm.length;i++) s+=sm[i];
+    cov.push(s/sm.length);
+    feat.push(sm.slice(Math.round(b0)*tw,(Math.round(b0)+bh)*tw));
+  }
+  const bank={cw,cellH,tw,b0:Math.round(b0),bh,cov,feat:feat.map(znorm)};
+  bankCache[key]=bank; return bank;
+}
+function znorm(v){
+  let m=0; for(let i=0;i<v.length;i++) m+=v[i]; m/=v.length;
+  const o=new Float32Array(v.length); let n=0;
+  for(let i=0;i<v.length;i++){o[i]=v[i]-m;n+=o[i]*o[i];}
+  n=Math.sqrt(n)||1e-8;
+  for(let i=0;i<o.length;i++) o[i]/=n;
+  return o;
+}
+
+/* ── 본체 ──────────────────────────────────────────────── */
+function opts(){
+  const set=TOKEN_SETS.ascii95;
+  return {
+    set, pix:+$("pix").value, aspect:+$("aspect").value/100,
+    wstruct:+$("wstruct").value/100, clip:+$("clip").value/1000,
+    sharp:+$("sharp").value, bgsens:+$("bgsens").value,
+    bgfill:$("bgfill").value, invert:$("invert").checked,
+    crop:[cropR.l,cropR.t,cropR.r,cropR.b],
+  };
+}
+
+function convert(){
+  if(!bitmap) return;
+  const o=opts(), per=o.set.per, toks=o.set.toks;
+  const [l,t,r,b]=o.crop;
+  const sx=Math.round(bitmap.width*l), sy=Math.round(bitmap.height*t);
+  const sw=Math.max(8,Math.round(bitmap.width*(r-l)));
+  const sh=Math.max(8,Math.round(bitmap.height*(b-t)));
+
+  const k=UPSCALE_TARGET/Math.max(sw,sh);
+  const W=Math.max(16,Math.round(sw*k)), H=Math.max(16,Math.round(sh*k));
+  const cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+  const c=cv.getContext("2d",{willReadFrequently:true});
+  c.imageSmoothingQuality="high";
+  c.drawImage(bitmap,sx,sy,sw,sh,0,0,W,H);
+  const px=c.getImageData(0,0,W,H).data;
+  let g=new Float32Array(W*H);
+  for(let i=0;i<W*H;i++) g[i]=(0.299*px[i*4]+0.587*px[i*4+1]+0.114*px[i*4+2])/255;
+  g=clahe(g,W,H,8,o.clip);
+  g=unsharp(g,W,H,o.sharp);
+
+  // 셀 가로 = per 글자, 셀 세로는 언제나 (2 x aspect) 글자폭.
+  const cols=o.pix, rows=Math.max(1,Math.round(cols*(sh/sw)*per/(2*o.aspect)));
+  const cell=areaResize(g,W,H,cols,rows);
+  const lo=pct(cell,1), hi=Math.max(pct(cell,99),lo+1e-6);
+  const ink=new Float32Array(cols*rows);
+  for(let i=0;i<ink.length;i++){
+    const v=Math.min(1,Math.max(0,(cell[i]-lo)/(hi-lo)));
+    ink[i]=o.invert?1-v:v;
+  }
+  const mask=bgMask(cell,cols,rows,o.bgsens);
+  const bank=buildBank(toks,per,o.aspect);
+  const cov=bank.cov, cmin=Math.min.apply(null,cov), cmax=Math.max.apply(null,cov);
+  const idx=new Int32Array(cols*rows);
+
+  // 칸마다: 잉크량 차이 + 모양 상관을 함께 보고 가장 싼 글자를 고른다.
+  // 모양 가중치가 0이면 잉크량만 보는 고전 ASCII 방식과 같아진다.
+  {
+    const cellH=bank.cellH, tw=bank.tw, b0=bank.b0, bh=bank.bh, feat=bank.feat;
+    const big=areaResize(g,W,H,cols*tw,rows*cellH);
+    const tcov=new Float32Array(cols*rows);
+    for(let i=0;i<ink.length;i++) tcov[i]=ink[i]*(cmax-cmin)+cmin;
+    let tv=0;
+    for(let i=0;i<ink.length;i++) for(let j=0;j<cov.length;j++){const d=tcov[i]-cov[j]; tv+=d*d;}
+    const tsd=Math.sqrt(tv/(ink.length*cov.length))||1e-8;
+    const patch=new Float32Array(bh*tw);
+    for(let ry=0;ry<rows;ry++) for(let rx=0;rx<cols;rx++){
+      const ci=ry*cols+rx;
+      for(let y=0;y<bh;y++){
+        const sy2=ry*cellH+b0+y;
+        for(let x=0;x<tw;x++){
+          let v=big[sy2*(cols*tw)+rx*tw+x];
+          v=Math.min(1,Math.max(0,(v-lo)/(hi-lo)));
+          patch[y*tw+x]=o.invert?1-v:v;
+        }
+      }
+      const pn=znorm(patch);
+      let best=0,bc=Infinity;
+      for(let j=0;j<toks.length;j++){
+        const f=feat[j]; let corr=0;
+        for(let i=0;i<pn.length;i++) corr+=pn[i]*f[i];
+        const d=(tcov[ci]-cov[j])/tsd, cost=d*d+o.wstruct*(1-corr);
+        if(cost<bc){bc=cost;best=j;}
+      }
+      idx[ci]=best;
+    }
+  }
+
+  const pad=s2=>s2.length>=per?s2.slice(0,per):s2+" ".repeat(per-s2.length);
+  const bgtok=(y,x)=>pad(o.bgfill==="solid" ? ".".repeat(per)
+                       : o.bgfill==="sparse" ? ((x+y)%2 ? " " : ".")
+                       : " ");
+  lines=[];
+  for(let y=0;y<rows;y++){
+    let s2="";
+    for(let x=0;x<cols;x++) s2 += mask[y*cols+x] ? bgtok(y,x) : pad(toks[idx[y*cols+x]]);
+    lines.push(s2);
+  }
+
+  // SSIM: 배경으로 치환한 칸은 의도적 왜곡이므로 제외하고 잰다.
+  // 원본 칸 밝기(ink) vs 실제로 찍힌 글자의 잉크량(cov[idx]).
+  const A=new Float32Array(cols*rows), B=new Float32Array(cols*rows);
+  for(let i=0;i<idx.length;i++){
+    A[i]=ink[i];
+    B[i]=mask[i]?ink[i]:cov[idx[i]];   // 배경 칸은 차이 0으로 중립 처리
+  }
+  const Bs=matchScale(B,A);
+  for(let i=0;i<idx.length;i++) if(mask[i]) Bs[i]=A[i];
+  const sv=ssim(A,Bs,cols,rows);
+
+  paint(o);
+  const bytes=new TextEncoder().encode(lines.join("\n")).length;
+  $("t_grid").textContent=(cols*per)+"\u00d7"+rows;
+  $("t_chars").textContent=(cols*per*rows).toLocaleString()+"자";
+  $("t_size").textContent=bytes<1024?bytes+" B":(bytes/1024).toFixed(1)+" KB";
+  $("t_src").textContent=(sw/cols).toFixed(1)+"\u00d7"+(sh/rows).toFixed(1)+"px";
+  $("t_ssim").textContent=isFinite(sv)?sv.toFixed(3):"\u2014";
+}
+
+/* 글자 선언은 한 곳에서만 만든다.  미리보기는 이것을 style 프로퍼티로 받고,
+   내보내기는 <style> 규칙으로 받는다.
+   인라인 style="..." 속성에는 절대 넣지 않는다 — FONT 에 큰따옴표가 들어 있어
+   속성이 그 자리에서 끊기고 뒤의 크기·색이 통째로 사라진다. */
+function plateDecl(o,fs,box){
+  const C=colors();
+  let s=`font-family:${FONT};font-size:${fs}px;line-height:${(2*o.aspect).toFixed(4)}ch;`
+      + `letter-spacing:0;white-space:pre;font-variant-ligatures:none;`
+      + `font-feature-settings:'liga' 0,'calt' 0;color:${C.ink};margin:0;`;
+  if(box) s+=`background:${C.bg};display:inline-block;padding:1em;overflow-x:auto;`;
+  return s;
+}
+
+function paint(o){
+  const fs=+$("fsize").value, pre=$("out");
+  $("empty").hidden=true; pre.hidden=false;
+  pre.style.cssText=plateDecl(o,fs,false);
+  applyColors();
+  if(rain){ rain.stop(); rain=null; }
+  pre.textContent=lines.join("\n");
+  if($("anim").checked) rain=dpRain(pre,Object.assign({reduce:false},animOpts()));
+}
+
+/* ── 낙하 애니메이션 ────────────────────────────────────────
+   엔진을 문자열로 들고 있다가 미리보기에서는 Function 으로 살려 쓰고,
+   내보낼 때는 같은 문자열을 그대로 파일에 넣는다.  화면에서 본 것과
+   내려받은 파일이 다르게 움직일 여지를 없애기 위해서다.
+   ========================================================================= */
+const RAIN_SRC = `
+function dpRain(el, cfg){
+  var FALL = cfg.fall||3000, PAUSE = cfg.pause||0, TRAIL = cfg.trail||12, FPS = cfg.fps||24;
+  var raw = el.textContent.replace(/\\n+$/, "").split("\\n"), i, c, r;
+  var COLS = 0; for(i=0;i<raw.length;i++) if(raw[i].length>COLS) COLS=raw[i].length;
+  var FIN = []; for(i=0;i<raw.length;i++){ var s=raw[i]; while(s.length<COLS) s+=" "; FIN.push(s); }
+  var ROWS = FIN.length;
+  if(!ROWS || !COLS) return { stop:function(){} };
+
+  /* 떨어지는 글자 후보 */
+  var POOL;
+  if(cfg.glyph === "ramp"){ POOL = "@%#*+=-:.$&WM8B0QOZmwqpdbkhao".split(""); }
+  else {
+    var seen = {}; POOL = [];
+    for(r=0;r<ROWS;r++) for(c=0;c<COLS;c++){ var g=FIN[r][c];
+      if(g!==" " && !seen[g]){ seen[g]=1; POOL.push(g); } }
+    if(!POOL.length) POOL = [".", ":", "o", "@"];
+  }
+
+  /* 시작 시점과 속도를 칸 번호에서 뽑는다 — 매번 같은 모양으로 반복된다 */
+  var D=[], DUR=[];
+  for(c=0;c<COLS;c++){
+    var h1=((c*2654435761)>>>0)/4294967296;
+    var h2=((((c+7)*40503)>>>0)*2654435761>>>0)/4294967296;
+    D[c]=h1*0.28*FALL; DUR[c]=(0.62+h2*0.38)*FALL;
+  }
+
+  function esc(ch){ return ch==="&"?"&amp;":ch==="<"?"&lt;":ch===">"?"&gt;":ch; }
+  function settle(){
+    var o="", r, c;
+    for(r=0;r<ROWS;r++){ for(c=0;c<COLS;c++) o+=esc(FIN[r][c]); if(r<ROWS-1) o+="\\n"; }
+    el.innerHTML=o;
+  }
+  /* 한 시점의 격자 상태.  화면 그리기와 GIF 만들기가 같은 함수를 쓰게 해서
+     내보낸 결과가 화면과 달라질 여지를 없앤다. */
+  function cells(ms){
+    var g=[], done=true, r, c;
+    for(r=0;r<ROWS;r++){
+      var line=[];
+      for(c=0;c<COLS;c++){
+        var head=((ms-D[c])/DUR[c])*(ROWS+TRAIL), ch, cls="";
+        if(head<r){ ch=" "; done=false; }
+        else if(head-TRAIL<r){
+          var k=(head-r)/TRAIL;
+          ch=POOL[(Math.random()*POOL.length)|0]; done=false;
+          cls = k<0.10 ? "h" : k<0.34 ? "t1" : k<0.68 ? "t2" : "t3";
+        } else ch=FIN[r][c];
+        line.push([ch,cls]);
+      }
+      g.push(line);
+    }
+    g.done=done;
+    return g;
+  }
+  function draw(ms){
+    var g=cells(ms), o="", r, c;
+    for(r=0;r<ROWS;r++){
+      for(c=0;c<COLS;c++){
+        var u=g[r][c];
+        o += u[1] ? '<i class="'+u[1]+'">'+esc(u[0])+'</i>' : esc(u[0]);
+      }
+      if(r<ROWS-1) o+="\\n";
+    }
+    el.innerHTML=o;
+    return g.done;
+  }
+
+  var raf=null, timer=null, t0=0, last=0, vis=true, io=null;
+  function halt(){ if(raf){cancelAnimationFrame(raf);raf=null;} if(timer){clearTimeout(timer);timer=null;} }
+  function tick(now){
+    raf=requestAnimationFrame(tick);
+    if(now-last < 1000/FPS) return;
+    last=now; if(!t0) t0=now;
+    if(draw(now-t0)){ halt(); timer=setTimeout(function(){timer=null;go();}, PAUSE); }
+  }
+  function go(){ if(!vis) return; halt(); t0=0; last=0; raf=requestAnimationFrame(tick); }
+
+  if(cfg.reduce && window.matchMedia &&
+     window.matchMedia("(prefers-reduced-motion: reduce)").matches){ settle(); return {stop:function(){}}; }
+
+  if("IntersectionObserver" in window){
+    io = new IntersectionObserver(function(e){
+      vis = e[0].isIntersecting;
+      if(vis) go(); else { halt(); settle(); }
+    }, {threshold:0});
+    io.observe(el);
+  } else go();
+
+  return { stop:function(){ vis=false; halt(); if(io) io.disconnect(); settle(); },
+           cells:cells, rows:ROWS, cols:COLS };
+}`;
+/* 괄호로 감싸지 않으면 return 뒤 줄바꿈에서 세미콜론이 자동 삽입돼 undefined 가 돌아온다 */
+const dpRain = new Function("return (" + RAIN_SRC + ")")();
+
+const PALETTES = {
+  mono:      {label:"흑백 인쇄",          bg:"#FFFFFF", ink:"#111111", head:"#1F6FA8"},
+  matrix:    {label:"매트릭스",           bg:"#05080A", ink:"#00C64A", head:"#D8FFE4"},
+  amber:     {label:"앰버 터미널",        bg:"#1A1206", ink:"#FFB000", head:"#FFF0C0"},
+  blueprint: {label:"블루프린트",         bg:"#0E2233", ink:"#9FD3F0", head:"#FFFFFF"},
+  night:     {label:"먹지",               bg:"#141414", ink:"#D8D2C4", head:"#E8B84B"},
+};
+
+const colors = () => ({bg:$("c_bg").value, ink:$("c_ink").value, head:$("c_head").value});
+const animOpts = () => ({
+  fall:+$("fall").value, pause:+$("pause").value, trail:+$("trail").value,
+  fps:+$("fps").value, glyph:$("glyph").value
+});
+let rain = null;
+
+/* ── 내보내기 ──────────────────────────────────────────── */
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+/* 애니메이션이 켜져 있으면 조각에도 색 규칙과 엔진을 함께 넣는다.
+   붙여넣은 곳에서 그대로 움직이지 않으면 조각을 준 의미가 없다. */
+function rainCSS(id){
+  const C=colors();
+  return `#${id} i{font-style:normal}\n`
+       + `#${id} i.h{color:${C.head};text-shadow:0 0 .45em ${C.head}}\n`
+       + `#${id} i.t1{color:${C.head}}\n`
+       + `#${id} i.t2{opacity:.66}\n`
+       + `#${id} i.t3{opacity:.34}\n`;
+}
+function rainJS(id){
+  const cfg=Object.assign({reduce:true},animOpts());
+  return RAIN_SRC + `\ndpRain(document.getElementById(${JSON.stringify(id)}), `
+       + JSON.stringify(cfg) + `);`;
+}
+function snippet(){
+  const on=$("anim").checked, id="dotplate", o=opts(), fs=+$("fsize").value;
+  let s = `<style>\n#${id}{${plateDecl(o,fs,true)}}\n` + (on?rainCSS(id):"") + `</style>\n`;
+  s += `<pre id="${id}">${esc(lines.join("\n"))}</pre>\n`;
+  if(on) s += `<script>\n${rainJS(id)}\n<\/script>\n`;
+  return s;
+}
+function fullPage(){
+  const on=$("anim").checked, C=colors(), id="dotplate";
+  return `<!doctype html>\n<html lang="ko">\n<head>\n<meta charset="utf-8">\n`
+    + `<meta name="viewport" content="width=device-width, initial-scale=1">\n`
+    + `<title>ASCII</title>\n`
+    + `<style>\n`
+    + `body{margin:0;padding:24px;background:${C.bg};display:flex;justify-content:center}\n`
+    + `#${id}{${plateDecl(opts(),+$("fsize").value,true)}}\n`
+    + (on ? rainCSS(id) : "")
+    + `</style>\n</head>\n<body>\n`
+    + `<pre id="${id}">${esc(lines.join("\n"))}</pre>\n`
+    + (on ? `<script>\n${rainJS(id)}\n<\/script>\n` : "")
+    + `</body>\n</html>\n`;
+}
+function download(name,text,type){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([text],{type}));
+  a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+
+/* ── GIF 만들기 ────────────────────────────────────────────────
+   낙하 3초 · 초당 15장으로 고정.  꼬리 길이와 색, 글자 크기, 정지 시간은
+   화면 설정을 그대로 따른다.  프레임은 엔진의 cells() 로 뽑으므로 화면에서
+   보는 것과 같은 낙하가 담긴다.
+   ========================================================================= */
+const GIF_FPS = 15, GIF_FALL = 3000;
+
+function hex2rgb(h){ return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]; }
+function mix(a,b,t){ return [Math.round(a[0]*t+b[0]*(1-t)), Math.round(a[1]*t+b[1]*(1-t)),
+                             Math.round(a[2]*t+b[2]*(1-t))]; }
+
+/* GIF 의 색표는 2의 거듭제곱이어야 한다.  글자는 안티에일리어싱 때문에
+   잉크색과 배경색 사이의 중간색으로도 찍히므로, 쓰는 색마다 배경 쪽으로
+   16단계를 미리 깔아두고 가장 가까운 칸을 고른다. */
+function gifPalette(){
+  const C=colors(), bg=hex2rgb(C.bg), ink=hex2rgb(C.ink), head=hex2rgb(C.head);
+  const inks=[ink, head, mix(ink,bg,0.66), mix(ink,bg,0.34)];
+  const pal=[bg], key={};
+  for(const t of inks) for(let i=1;i<=16;i++){
+    const c=mix(t,bg,i/16), k=c.join(",");
+    if(!key[k]){ key[k]=1; pal.push(c); }
+  }
+  let size=2; while(size<pal.length) size*=2;
+  while(pal.length<size) pal.push([0,0,0]);
+  return {pal, bits:Math.round(Math.log2(size))};
+}
+
+function lzwEncode(px, minCode){
+  const clear=1<<minCode, eoi=clear+1;
+  let size=minCode+1, next=eoi+1, dict=new Map(), out=[], cur=0, bits=0;
+  const emit=c=>{ cur|=c<<bits; bits+=size;
+    while(bits>=8){ out.push(cur&255); cur>>>=8; bits-=8; } };
+  emit(clear);
+  let prefix=px[0];
+  for(let i=1;i<px.length;i++){
+    const k=px[i], key=(prefix<<8)|k, f=dict.get(key);
+    if(f!==undefined){ prefix=f; continue; }
+    emit(prefix);
+    /* 코드 폭은 새 항목을 배정하기 *전에* 늘려야 한다.  배정한 뒤에 늘리면
+       256번째 코드가 8비트로 나가고, 그 순간부터 디코더와 어긋난다. */
+    if(next===4096){ emit(clear); dict=new Map(); next=eoi+1; size=minCode+1; }
+    else { if(next>=(1<<size) && size<12) size++; dict.set(key,next++); }
+    prefix=k;
+  }
+  emit(prefix); emit(eoi);
+  if(bits>0) out.push(cur&255);
+  return out;
+}
+
+function gifBuild(frames, W, H, pal, bits, delays){
+  const b=[], s=t=>{ for(let i=0;i<t.length;i++) b.push(t.charCodeAt(i)); };
+  const u16=v=>{ b.push(v&255, (v>>8)&255); };
+  s("GIF89a"); u16(W); u16(H);
+  b.push(0xF0 | (bits-1), 0, 0);
+  for(const c of pal) b.push(c[0],c[1],c[2]);
+  s("!"); b.push(0xFF,11); s("NETSCAPE2.0"); b.push(3,1); u16(0); b.push(0);
+  for(let i=0;i<frames.length;i++){
+    b.push(0x21,0xF9,4,0x04); u16(Math.round(delays[i]/10)); b.push(0,0);   /* disposal 1 */
+    b.push(0x2C); u16(0); u16(0); u16(W); u16(H); b.push(0);
+    const minCode=Math.max(2,bits);
+    b.push(minCode);
+    const data=lzwEncode(frames[i], minCode);
+    for(let o=0;o<data.length;o+=255){
+      const chunk=data.slice(o,o+255);
+      b.push(chunk.length); for(const v of chunk) b.push(v);
+    }
+    b.push(0);
+  }
+  b.push(0x3B);
+  return new Uint8Array(b);
+}
+
+async function makeGif(){
+  const o=opts(), fs=+$("fsize").value, C=colors();
+  const pre=$("out");
+  const cv=document.createElement("canvas"), c=cv.getContext("2d",{willReadFrequently:true});
+  const fontSpec=fs+"px "+FONT;
+  c.font=fontSpec;
+  const cw=c.measureText("0").width, lh=2*o.aspect*cw;
+  const ROWS=lines.length, COLS=lines[0].length;
+  const PADX=Math.round(cw*2), PADY=Math.round(lh*0.6);
+  cv.width=Math.ceil(COLS*cw)+PADX*2; cv.height=Math.ceil(ROWS*lh)+PADY*2;
+
+  /* 화면과 같은 낙하를 얻으려고 엔진을 하나 더 띄운다.  화면에 붙이지 않은
+     요소 위에서 돌리므로 미리보기는 건드리지 않는다. */
+  const ghost=document.createElement("pre");
+  ghost.textContent=lines.join("\n");
+  const eng=dpRain(ghost,{fall:GIF_FALL,pause:0,trail:+$("trail").value,
+                          fps:GIF_FPS,glyph:$("glyph").value,reduce:false});
+  eng.stop();
+
+  const {pal,bits}=gifPalette();
+  const near=new Map();
+  const idxOf=(r,g,bl)=>{
+    const k=(r<<16)|(g<<8)|bl, hit=near.get(k);
+    if(hit!==undefined) return hit;
+    let best=0, bd=1e9;
+    for(let i=0;i<pal.length;i++){
+      const d=(pal[i][0]-r)**2+(pal[i][1]-g)**2+(pal[i][2]-bl)**2;
+      if(d<bd){ bd=d; best=i; }
+    }
+    near.set(k,best); return best;
+  };
+  const COL={ "":C.ink, h:C.head, t1:C.head,
+              t2:"rgb("+mix(hex2rgb(C.ink),hex2rgb(C.bg),0.66).join(",")+")",
+              t3:"rgb("+mix(hex2rgb(C.ink),hex2rgb(C.bg),0.34).join(",")+")" };
+  const CLASSES=["","h","t1","t2","t3"];
+
+  /* 낙하가 실제로 끝나는 시점은 열마다 다른 시작 지연과 속도의 합이라 3초보다
+     늦다.  마지막 열이 자리를 잡는 프레임을 먼저 찾아 두고 거기까지 담는다. */
+  const CAP=Math.ceil(GIF_FALL*2.5/1000*GIF_FPS);
+  let n=CAP;
+  for(let i=0;i<CAP;i++) if(eng.cells(i/GIF_FPS*1000).done){ n=i+1; break; }
+
+  const frames=[], delays=[];
+  const btn=$("b_gif");
+  for(let i=0;i<n;i++){
+    const g=eng.cells(i/GIF_FPS*1000);
+    c.fillStyle=C.bg; c.fillRect(0,0,cv.width,cv.height);
+    c.font=fontSpec; c.textBaseline="top";
+    /* 색깔별로 한 번씩 훑는다.  모노스페이스라 나머지를 공백으로 두어도 자리가 맞는다 */
+    for(const cls of CLASSES){
+      c.fillStyle=COL[cls];
+      for(let r=0;r<ROWS;r++){
+        let any=false, s="";
+        for(let x=0;x<COLS;x++){ const u=g[r][x];
+          if(u[1]===cls){ s+=u[0]; any=true; } else s+=" "; }
+        if(any) c.fillText(s, PADX, PADY+r*lh);
+      }
+    }
+    const d=c.getImageData(0,0,cv.width,cv.height).data;
+    const px=new Uint8Array(cv.width*cv.height);
+    for(let q=0,j=0;q<px.length;q++,j+=4) px[q]=idxOf(d[j],d[j+1],d[j+2]);
+    frames.push(px); delays.push(1000/GIF_FPS);
+    btn.textContent="만드는 중 "+(i+1)+"/"+n;
+    if(i%5===0) await new Promise(r=>setTimeout(r,0));
+  }
+  delays[delays.length-1]=Math.max(1000/GIF_FPS, +$("pause").value);
+  const bytes=gifBuild(frames,cv.width,cv.height,pal,bits,delays);
+  btn.textContent=".gif 내려받기";
+  return {bytes, W:cv.width, H:cv.height, n};
+}
+
+$("b_gif").addEventListener("click",async ()=>{
+  if(!lines) return;
+  const btn=$("b_gif"); btn.disabled=true;
+  try{
+    const g=await makeGif();
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(new Blob([g.bytes],{type:"image/gif"}));
+    a.download="ascii.gif"; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    $("t_size").textContent=(g.bytes.length/1048576).toFixed(2)+" MB (GIF)";
+  }catch(err){ btn.textContent="실패: "+err.message; setTimeout(()=>btn.textContent=".gif 내려받기",2500); }
+  btn.disabled=false;
+});
+
+/* ── UI 배선 ───────────────────────────────────────────── */
+function labels(){
+  const o=opts();
+  $("v_pix").textContent=$("pix").value;
+  $("v_w").textContent=(+$("wstruct").value/100).toFixed(2);
+  $("v_asp").textContent=(+$("aspect").value/100).toFixed(2);
+  $("v_clip").textContent=(+$("clip").value/1000).toFixed(3);
+  $("v_sharp").textContent=$("sharp").value+"%";
+  $("v_bg").textContent=$("bgsens").value+"%";
+  $("v_fs").textContent=$("fsize").value+"px";
+  if(bitmap){
+    const w=Math.round(bitmap.width*(o.crop[2]-o.crop[0]));
+    const h=Math.round(bitmap.height*(o.crop[3]-o.crop[1]));
+    $("v_crop").textContent=w+"\u00d7"+h+"px";
+  }
+  $("pixhint").textContent = "칸 하나가 문자 1개입니다. 가로 "+o.pix+"자.";
+}
+function drawCrop(){
+  if(!bitmap) return;
+  const cv=$("cropcv"), c=cv.getContext("2d");
+  const w=294, h=Math.round(w*bitmap.height/bitmap.width);
+  cv.width=w; cv.height=h; c.drawImage(bitmap,0,0,w,h);
+  const {l,t,r,b}=cropR, box=$("crop");
+  box.style.left=(l*100)+"%"; box.style.top=(t*100)+"%";
+  box.style.width=Math.max(0,(r-l)*100)+"%"; box.style.height=Math.max(0,(b-t)*100)+"%";
+}
+function schedule(){
+  labels(); drawCrop();
+  $("plate").classList.add("busy");
+  clearTimeout(timer);
+  timer=setTimeout(()=>{ convert(); $("plate").classList.remove("busy"); },90);
+}
+
+/* ── 자르기: 썸네일 위에서 직접 끌기 ─────────────────────────
+   영역은 원본 대비 0~1 비율로만 들고 있는다.  썸네일 크기가 바뀌어도,
+   다른 사진을 올려도 같은 수가 그대로 통한다.
+   ========================================================================= */
+let cropR = {l:0.15, t:0.02, r:0.85, b:0.68};
+const MINF = 0.06;                       // 최소 폭·높이 (원본 대비)
+
+/* 잠근 비율은 화면 비율이므로 원본 픽셀에서 정의된다.  같은 1:1 이라도
+   세로로 긴 사진에서는 비율 좌표로 보면 정사각형이 아니다. */
+function ratioK(){
+  const v=$("ratio").value;
+  if(v==="free" || !bitmap) return 0;
+  const [rw,rh]=v.split(":").map(Number);
+  return (rw/rh) * (bitmap.height/bitmap.width);   // 폭비율 = K x 높이비율
+}
+/* av: 세로로 고정할 변('n'|'s'|'c'), ah: 가로로 고정할 변('w'|'e'|'c') */
+function normalize(rc, av, ah, drv){
+  const K=ratioK();
+  let w=Math.max(MINF, rc.r-rc.l), h=Math.max(MINF, rc.b-rc.t);
+  if(K){
+    if(drv==="h"){ w=K*h; if(w<MINF){ w=MINF; h=w/K; } }
+    else         { h=w/K; if(h<MINF){ h=MINF; w=K*h; } }
+    if(w>1){ w=1; h=w/K; }
+    if(h>1){ h=1; w=K*h; }
+  } else { w=Math.min(1,w); h=Math.min(1,h); }
+  let l = ah==="w" ? rc.l : ah==="e" ? rc.r-w : (rc.l+rc.r)/2-w/2;
+  let t = av==="n" ? rc.t : av==="s" ? rc.b-h : (rc.t+rc.b)/2-h/2;
+  l=Math.min(Math.max(0,l),1-w); t=Math.min(Math.max(0,t),1-h);
+  return {l,t,r:l+w,b:t+h};
+}
+const HANDLES={
+  nw:{x:"l",y:"t",av:"s",ah:"e",drv:"w"}, n:{y:"t",av:"s",ah:"c",drv:"h"},
+  ne:{x:"r",y:"t",av:"s",ah:"w",drv:"w"}, e:{x:"r",av:"c",ah:"w",drv:"w"},
+  se:{x:"r",y:"b",av:"n",ah:"w",drv:"w"}, s:{y:"b",av:"n",ah:"c",drv:"h"},
+  sw:{x:"l",y:"b",av:"n",ah:"e",drv:"w"}, w:{x:"l",av:"c",ah:"e",drv:"w"}
+};
+
+(function(){
+  const wrap=$("cropwrap");
+  let drag=null;
+  const pt=e=>{ const b=wrap.getBoundingClientRect();
+    return { x:Math.min(1,Math.max(0,(e.clientX-b.left)/b.width)),
+             y:Math.min(1,Math.max(0,(e.clientY-b.top )/b.height)) }; };
+
+  wrap.addEventListener("pointerdown",e=>{
+    if(!bitmap) return;
+    const h=e.target.getAttribute("data-h"), p=pt(e);
+    if(h)                       drag={kind:"size",h,start:p,from:Object.assign({},cropR)};
+    else if(e.target.id==="crop") drag={kind:"move",start:p,from:Object.assign({},cropR)};
+    else                        drag={kind:"draw",start:p};
+    wrap.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    if(drag.kind==="draw") apply(e);
+  });
+  wrap.addEventListener("pointermove",e=>{ if(drag) apply(e); });
+  const end=e=>{ if(!drag) return; drag=null;
+    try{ wrap.releasePointerCapture(e.pointerId); }catch(err){} };
+  wrap.addEventListener("pointerup",end);
+  wrap.addEventListener("pointercancel",end);
+
+  function apply(e){
+    const p=pt(e), f=drag.from;
+    if(drag.kind==="move"){
+      const w=f.r-f.l, h=f.b-f.t;
+      let l=Math.min(Math.max(0,f.l+(p.x-drag.start.x)),1-w);
+      let t=Math.min(Math.max(0,f.t+(p.y-drag.start.y)),1-h);
+      cropR={l,t,r:l+w,b:t+h};
+    } else if(drag.kind==="draw"){
+      const s=drag.start;
+      cropR=normalize({l:Math.min(s.x,p.x),t:Math.min(s.y,p.y),
+                       r:Math.max(s.x,p.x),b:Math.max(s.y,p.y)},
+                      p.y<s.y?"s":"n", p.x<s.x?"e":"w", "w");
+    } else {
+      const H=HANDLES[drag.h], rc=Object.assign({},f);
+      if(H.x) rc[H.x]=p.x;
+      if(H.y) rc[H.y]=p.y;
+      if(rc.r<rc.l+MINF){ if(H.x==="l") rc.l=rc.r-MINF; else rc.r=rc.l+MINF; }
+      if(rc.b<rc.t+MINF){ if(H.y==="t") rc.t=rc.b-MINF; else rc.b=rc.t+MINF; }
+      cropR=normalize(rc,H.av,H.ah,H.drv);
+    }
+    schedule();
+  }
+
+  $("ratio").addEventListener("change",()=>{
+    cropR=normalize(Object.assign({},cropR),"c","c","w");   // 가운데를 잡고 비율만 맞춘다
+    schedule();
+  });
+})();
+
+$("file").addEventListener("change", async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  $("fileinfo").textContent="읽는 중…";
+  try{
+    bitmap=await createImageBitmap(f,{imageOrientation:"from-image"});
+  }catch(err){
+    $("fileinfo").textContent="이 파일은 브라우저가 열 수 없습니다. JPEG이나 PNG로 바꿔서 넣어주세요.";
+    return;
+  }
+  $("fileinfo").textContent=`${f.name} · ${bitmap.width}×${bitmap.height}`;
+  $("cropwrap").hidden=false; $("cropbox").hidden=false;
+  labels(); drawCrop(); convert();
+});
+
+["pix","aspect","wstruct","clip","sharp","bgsens"]
+  .forEach(id=>$(id).addEventListener("input",schedule));
+
+$("bgfill").addEventListener("change",schedule);
+$("invert").addEventListener("change",()=>schedule());
+$("fsize").addEventListener("input",()=>{ labels(); if(lines) paint(opts()); });
+
+$("b_copy").addEventListener("click",async ()=>{
+  if(!lines) return;
+  try{ await navigator.clipboard.writeText(snippet()); $("b_copy").textContent="복사했습니다"; }
+  catch{ $("b_copy").textContent="복사가 막혔습니다 — 내려받기를 쓰세요"; }
+  setTimeout(()=>$("b_copy").textContent="HTML 조각 복사",1600);
+});
+$("b_txt").addEventListener("click",()=>lines&&download("ascii.txt",lines.join("\n"),"text/plain"));
+$("b_html").addEventListener("click",()=>{
+  if(!lines) return;
+  download("ascii.html", fullPage(), "text/html");
+});
+
+/* 글꼴이 자리를 잡은 뒤에 글리프를 재야 잉크량이 정확하다 */
+if(document.fonts&&document.fonts.ready){
+  document.fonts.ready.then(()=>{ bankCache={}; if(lines) convert(); });
+}
+/* ── 애니메이션 배선 ───────────────────────────────────── */
+function applyColors(){
+  const C=colors(), root=document.documentElement.style;
+  root.setProperty("--paper",C.bg);
+  root.setProperty("--paperink",C.ink);
+  root.setProperty("--dp-head",C.head);
+}
+function fillPalettes(){
+  const sel=$("pal");
+  for(const k of Object.keys(PALETTES)) sel.appendChild(new Option(PALETTES[k].label,k));
+  sel.appendChild(new Option("직접 고른 색","custom"));
+  sel.value="mono";
+}
+function animLabels(){
+  $("v_fall").textContent=(+$("fall").value/1000).toFixed(1)+"s";
+  $("v_pause").textContent=(+$("pause").value/1000).toFixed(1)+"s";
+  $("v_trail").textContent=$("trail").value+"행";
+  $("v_fps").textContent=$("fps").value;
+  $("animgrp").classList.toggle("off",!$("anim").checked);
+}
+/* 색과 속도는 그림을 다시 계산할 필요가 없다 — 다시 칠하기만 한다 */
+function restartRain(){
+  animLabels(); applyColors();
+  if(!lines) return;
+  paint(opts());
+}
+$("pal").addEventListener("change",()=>{
+  const p=PALETTES[$("pal").value];
+  if(p){ $("c_bg").value=p.bg; $("c_ink").value=p.ink; $("c_head").value=p.head; }
+  restartRain();
+});
+["c_bg","c_ink","c_head"].forEach(id=>$(id).addEventListener("input",()=>{
+  $("pal").value="custom"; restartRain();
+}));
+["fall","pause","trail","fps"].forEach(id=>$(id).addEventListener("input",restartRain));
+$("glyph").addEventListener("change",restartRain);
+$("anim").addEventListener("change",restartRain);
+
+fillPalettes(); labels(); animLabels(); applyColors();
+</script>
+</body>
+</html>
