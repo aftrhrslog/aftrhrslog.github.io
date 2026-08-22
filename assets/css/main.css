@@ -1477,3 +1477,50 @@ main.page::before,
   opacity: .03;
   mix-blend-mode: multiply;
 }
+/* ==========================================================================
+   About — ASCII dot plate
+   56 columns of monospace.  One column is 0.6em wide, so the picture is
+   56 x 0.6 = 33.6em across: setting the type at a 33.6th of the plate lands
+   the art on the plate edges exactly, at any width, with no breakpoint.  The
+   plate is the query container and its content box is a flat 200px, which is
+   the size the picture was judged at, so it is the same on a phone and on a
+   desktop.  Frame and shadow are the Now card's, so the two read as one idea.
+   ========================================================================== */
+
+.dotplate {
+  container-type: inline-size;
+  width: 222px;                    /* 200 content + 9 padding + 2 border, twice */
+  padding: 9px;
+  margin: 0 auto 30px;
+  background: var(--mint);
+  border: 2px solid var(--accent);
+  border-radius: 0;
+  box-shadow: 8px 8px 0 rgba(31, 111, 168, .16);
+}
+
+.dotplate > .dotplate-art {
+  /* undoing the code-block treatment that every other pre on the site wants */
+  margin: 0; padding: 0; border: 0; border-radius: 0;
+  background: none; overflow: visible;
+
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: calc(100cqw / 33.6);
+  line-height: 2.36ch;             /* the cell aspect the picture was sampled at */
+  letter-spacing: 0;
+  white-space: pre;
+  font-variant-ligatures: none;
+  font-feature-settings: 'liga' 0, 'calt' 0;
+  color: #2E2A20;
+}
+
+/* Rain.  Only the drop and its tail are wrapped; every settled character is
+   bare text, which holds the per-frame markup to about a dozen rows of spans. */
+.dotplate-art i     { font-style: normal; }
+.dotplate-art i.h   { color: var(--accent); text-shadow: 0 0 .45em var(--accent); }
+.dotplate-art i.t1  { color: var(--accent); }
+.dotplate-art i.t2  { color: #2E2A20; opacity: .66; }
+.dotplate-art i.t3  { color: #2E2A20; opacity: .34; }
+
+@media (max-width: 600px) {
+  .dotplate { box-shadow: 4px 4px 0 rgba(31, 111, 168, .16); margin-bottom: 26px; }
+}
