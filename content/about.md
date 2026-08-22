@@ -1,5 +1,6 @@
 ---
 title: "About"
+dotplate: true
 ---
 
 I'm someone who tends to think a little too much, look things up for no particular reason, and occasionally spend far more time on a subject than I originally intended.
