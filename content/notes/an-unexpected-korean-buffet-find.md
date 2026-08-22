@@ -5,7 +5,7 @@ tags:
   - Leisure
 ---
 
-Today was a <mark>research-from-home/mark> day. I had finished my routine tasks in advance so I could <mark>set aside</mark> the whole day for my research. I often prefer working at home, and today was one of those days. In my <mark>study room</mark>, everything I need is <mark>within reach</mark>, no one <mark>interrupts</mark> me, and it's quiet. When I'm doing research or writing a paper, I need <mark>that kind of</mark> fully controlled space.
+Today was a <mark>research-from-home</mark> day. I had finished my routine tasks in advance so I could <mark>set aside</mark> the whole day for my research. I often prefer working at home, and today was one of those days. In my <mark>study room</mark>, everything I need is <mark>within reach</mark>, no one <mark>interrupts</mark> me, and it's quiet. When I'm doing research or writing a paper, I need <mark>that kind of</mark> fully controlled space.
 
 I <mark>woke up on my own</mark>, <mark>checked</mark> the time, and saw that it was around 8 a.m. I <mark>stayed in bed</mark> for a bit and then decided to get up. I started the day with <mark>a morning walk around my neighborhood</mark> and stopped by Lotteria, a fast-food chain, to try their breakfast menu. The food wasn't bad, but it <mark>wasn't really my style</mark>. The <mark>egg salad</mark> between the buns <mark>tasted like it had come straight out of the fridge</mark>. That made the whole thing cold. I like the combination of bacon, eggs, and bread, but <mark>I prefer it hot rather than cold</mark>. After grabbing a bite, I went back home and <mark>got right to work</mark>.
 
