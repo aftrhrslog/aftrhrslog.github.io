@@ -1,0 +1,13 @@
+{{/* About page portrait.  Rendered from the layout rather than from the page
+     body so that it can sit above the heading; the finished picture is written
+     in at build time, so it survives with JavaScript off and there is nothing
+     to lay out twice.  The rain in scripts.html takes over once the plate
+     scrolls into view. */}}
+{{- with resources.Get "ascii/profile.txt" -}}
+<figure class="dotplate">
+  <pre class="dotplate-art" id="dotplate" role="img"
+       aria-label="An ASCII portrait of the author">{{ .Content | strings.TrimRight "\n" }}</pre>
+</figure>
+{{- else -}}
+  {{ warnf "dotplate: assets/ascii/profile.txt not found" }}
+{{- end -}}
