@@ -12,10 +12,6 @@ It’s a place to keep track of what I think, what I learn, and the English I pi
 Over time, I hope this becomes less of a collection of posts and more of a
 record of how my **interests, opinions, and perspective** have changed.
 
-## What I Do
-
-I work in **medicine**. It's work I care about, but I’ve always been curious about things beyond my work. There has always been something else I wanted to learn, try, or take apart just to see how it works.
-
 ## Things I Tinker With
 
 I first picked up **R**, thinking R programming skills might be useful for my career.
@@ -37,8 +33,6 @@ things with code.**
 ## Away from the Screen
 
 - **Gym:** once a regular, now an occasional visitor
-- **Running:** used to casually put in a few hundred kilometers a year, until
-  an injury convinced me otherwise
 
 On a sunny day, I like simply wandering around. **Small streets, quiet corners,
 and cozy alleys** are particularly difficult for me to walk past without taking
