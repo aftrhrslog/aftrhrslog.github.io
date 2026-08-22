@@ -1,8 +1,13 @@
 {{ define "main" }}
 <article class="note"{{ if findRE "[가-힣]" (print .Title .Plain) 1 }} lang="ko"{{ end }}>
   {{ if .Params.dotplate }}{{ with resources.Get "ascii/profile.txt" }}
-<figure class="dotplate"><pre class="dotplate-art" id="dotplate" role="img"
-  aria-label="An ASCII portrait of the author">{{ .Content | strings.TrimRight "\n" }}</pre></figure>
+<figure class="dotplate">
+  <div class="dp-bar"><span class="dot"></span>~/about/portrait.txt</div>
+  <div class="dp-body">
+    <div class="dp-artbox"><pre class="dotplate-art" id="dotplate" role="img"
+      aria-label="An ASCII portrait of the author">{{ .Content | strings.TrimRight "\n" }}</pre></div>
+  </div>
+</figure>
 {{ end }}{{ end }}
   <header class="note-header">
     <h1>{{ .Title }}</h1>
