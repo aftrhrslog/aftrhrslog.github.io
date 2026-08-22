@@ -58,3 +58,105 @@
   }
 })();
 </script>
+<script>
+/* The About portrait.  The picture is already in the page; this redraws it as
+   falling columns of noise that settle into the real characters, then waits
+   and does it again.  Nothing runs while the plate is off screen, so the tab
+   goes idle as soon as the reader scrolls past it. */
+(function () {
+  var el = document.getElementById('dotplate');
+  if (!el) return;
+
+  var FALL = 3000,   /* longest column, ms */
+      PAUSE = 3000,  /* rest between passes */
+      TRAIL = 12,    /* rows of noise behind each drop */
+      FPS = 24;      /* redrawing faster than this buys nothing at 6px type */
+
+  var RAMP = "@%#*+=-:.$&WM8B0QOZmwqpdbkhao".split("");
+
+  var FIN = el.textContent.replace(/\n+$/, '').split('\n');
+  var ROWS = FIN.length, COLS = FIN[0].length;
+  if (!ROWS || !COLS) return;
+
+  /* A column's start and speed come from its index, not from Math.random, so
+     every pass has the same shape and a reader sees a repeat rather than a
+     scramble. */
+  var D = [], DUR = [];
+  for (var c = 0; c < COLS; c++) {
+    var h1 = ((c * 2654435761) >>> 0) / 4294967296;
+    var h2 = ((((c + 7) * 40503) >>> 0) * 2654435761 >>> 0) / 4294967296;
+    D[c]   = h1 * 0.28 * FALL;
+    DUR[c] = (0.62 + h2 * 0.38) * FALL;
+  }
+
+  function esc(ch) {
+    return ch === '&' ? '&amp;' : ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch;
+  }
+
+  function settle() {
+    var out = '', r, c;
+    for (r = 0; r < ROWS; r++) {
+      for (c = 0; c < COLS; c++) out += esc(FIN[r][c] || ' ');
+      if (r < ROWS - 1) out += '\n';
+    }
+    el.innerHTML = out;
+  }
+
+  function draw(ms) {
+    var out = '', done = true, r, c;
+    for (r = 0; r < ROWS; r++) {
+      for (c = 0; c < COLS; c++) {
+        var head = ((ms - D[c]) / DUR[c]) * (ROWS + TRAIL);
+        var ch, cls = '';
+        if (head < r) {                       /* not reached yet */
+          ch = ' '; done = false;
+        } else if (head - TRAIL < r) {        /* inside the tail */
+          var k = (head - r) / TRAIL;
+          ch = RAMP[(Math.random() * RAMP.length) | 0];
+          cls = k < 0.10 ? 'h' : k < 0.34 ? 't1' : k < 0.68 ? 't2' : 't3';
+          done = false;
+        } else {                              /* settled */
+          ch = FIN[r][c] || ' ';
+        }
+        out += cls ? '<i class="' + cls + '">' + esc(ch) + '</i>' : esc(ch);
+      }
+      if (r < ROWS - 1) out += '\n';
+    }
+    el.innerHTML = out;
+    return done;
+  }
+
+  var raf = null, timer = null, t0 = 0, last = 0, visible = false;
+
+  function stop() {
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+    if (timer) { clearTimeout(timer); timer = null; }
+  }
+
+  function tick(now) {
+    raf = requestAnimationFrame(tick);
+    if (now - last < 1000 / FPS) return;
+    last = now;
+    if (!t0) t0 = now;
+    if (draw(now - t0)) {
+      stop();
+      timer = setTimeout(function () { timer = null; start(); }, PAUSE);
+    }
+  }
+
+  function start() {
+    if (!visible) return;
+    stop();
+    t0 = 0; last = 0;
+    raf = requestAnimationFrame(tick);
+  }
+
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (!('IntersectionObserver' in window)) return;
+
+  new IntersectionObserver(function (entries) {
+    visible = entries[0].isIntersecting;
+    if (visible) start(); else { stop(); settle(); }
+  }, { threshold: 0 }).observe(el);
+})();
+</script>
