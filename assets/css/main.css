@@ -1478,19 +1478,16 @@ main.page::before,
   mix-blend-mode: multiply;
 }
 /* ==========================================================================
-   About — ASCII dot plate
+   About — ASCII dot plate, framed as a flat terminal window
    56 columns of monospace.  One column is 0.6em wide, so the picture is
-   56 x 0.6 = 33.6em across: setting the type at a 33.6th of the plate lands
-   the art on the plate edges exactly, at any width, with no breakpoint.  The
-   plate is the query container and its content box is a flat 200px, which is
-   the size the picture was judged at, so it is the same on a phone and on a
-   desktop.  Frame and shadow are the Now card's, so the two read as one idea.
+   56 x 0.6 = 33.6em across: setting the type at a 33.6th of the box lands the
+   art on the box edges exactly, at any width, with no breakpoint.  The query
+   container is the art box and not the plate, so the title bar and the padding
+   can change without moving the glyph size off the 200px it was judged at.
    ========================================================================== */
 
 .dotplate {
-  container-type: inline-size;
-  width: 222px;                    /* 200 content + 9 padding + 2 border, twice */
-  padding: 9px;
+  width: max-content;
   margin: 0 auto 30px;
   background: var(--mint);
   border: 2px solid var(--accent);
@@ -1498,12 +1495,30 @@ main.page::before,
   box-shadow: 8px 8px 0 rgba(31, 111, 168, .16);
 }
 
-.dotplate > .dotplate-art {
+/* The bar carries the same colour as the border, so the frame simply thickens
+   at the top and reads as a header rather than as a second box. */
+.dp-bar {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 9px 6px;
+  background: var(--accent);
+  color: var(--mint);
+  font-family: var(--font-mono);
+  font-size: 10.5px; letter-spacing: .04em; line-height: 1;
+}
+.dp-bar .dot {
+  flex: none; width: 5px; height: 5px;
+  background: rgba(233, 243, 238, .55);   /* square: nothing here is round */
+}
+
+.dp-body   { padding: 11px 9px 12px; }
+.dp-artbox { container-type: inline-size; width: 200px; }
+
+.dotplate-art {
   /* undoing the code-block treatment that every other pre on the site wants */
   margin: 0; padding: 0; border: 0; border-radius: 0;
   background: none; overflow: visible;
 
-  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: calc(100cqw / 33.6);
   line-height: 2.36ch;             /* the cell aspect the picture was sampled at */
   letter-spacing: 0;
@@ -1520,6 +1535,14 @@ main.page::before,
 .dotplate-art i.t1  { color: var(--accent); }
 .dotplate-art i.t2  { color: #2E2A20; opacity: .66; }
 .dotplate-art i.t3  { color: #2E2A20; opacity: .34; }
+
+.dp-cap {
+  margin: 0 0 30px;
+  font-family: var(--font-mono);
+  font-size: 11.5px; letter-spacing: .06em;
+  color: var(--ink-soft);
+  text-align: center;
+}
 
 @media (max-width: 600px) {
   .dotplate { box-shadow: 4px 4px 0 rgba(31, 111, 168, .16); margin-bottom: 26px; }
