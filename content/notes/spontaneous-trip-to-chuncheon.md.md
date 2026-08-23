@@ -4,9 +4,7 @@ date: 2026-08-23T23:56:41+09:00
 tags:
   - Leisure
 ---
-Went to bed very late last night, felt sluggish when I woke up on my own around 7, slept in until 9, but still <mark>
-
-felt foggy</mark>.
+Went to bed very late last night, felt sluggish when I woke up on my own around 7, slept in until 9, but still <mark>felt foggy</mark>.
 
 Went outside for a walk to get some air and <mark>get my blood flowing</mark>, hoping I’d <mark>feel more refreshed</mark>. Took a cold shower and tried to take a nap.
 
