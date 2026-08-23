@@ -4,8 +4,6 @@ date: 2026-08-23T23:56:41+09:00
 tags:
   - Leisure
 ---
-A Spontaneous Trip to Chuncheon
-
 Went to bed very late last night, felt sluggish when I woke up on my own around 7, slept in until 9, but still <mark>
 
 felt foggy</mark>.
